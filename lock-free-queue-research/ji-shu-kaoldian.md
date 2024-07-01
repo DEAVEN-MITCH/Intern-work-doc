@@ -74,6 +74,7 @@ boost::lockfree::queue
 
 1. 与其他优化的有锁队列进行对比，比如concurrent\_queue等
 2. 无等待编程、无锁编程、无障碍编程思想的应用
+3. RAII智能指针的使用
 
 ## 参考资料链接
 
