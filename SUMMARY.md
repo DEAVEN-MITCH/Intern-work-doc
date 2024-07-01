@@ -3,6 +3,6 @@
 ## Lock Free Queue Research
 
 * [😘 Definition](README.md)
-* [Page 2](lock-free-queue-research/page-2.md)
+* [技术考虑点](lock-free-queue-research/ji-shu-kaoldian.md)
 * [Page](lock-free-queue-research/page.md)
 * [Page 3](lock-free-queue-research/page-3.md)
