@@ -52,7 +52,7 @@ google benchmark，有待了解
 
 ## 功能方面
 
-SPSC……可能被多次应用
+SPSC、MPMP、MPSC……可能被多次应用
 
 ## 已有无锁队列参考
 
