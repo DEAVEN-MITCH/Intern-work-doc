@@ -7,3 +7,4 @@
 * [CMessageQueue源代码阅读](lock-free-queue-research/page.md)
 * [notes](lock-free-queue-research/notes.md)
 * [已有无锁队列调研](lock-free-queue-research/page-3.md)
+* [知识点记录](lock-free-queue-research/zhi-shi-dian-ji-lu.md)

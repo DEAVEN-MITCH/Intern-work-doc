@@ -40,6 +40,16 @@
 
 考虑队列元素类型泛型支持
 
+## 支持接口相关
+
+* dequeue(),enqueue()
+* emplace\_back()
+* front() &#x20;
+
+{% hint style="info" %}
+front的话需要支持shared\_ptr来提供view访问并在计数为零时删除？
+{% endhint %}
+
 ## 测试相关
 
 google benchmark，有待了解

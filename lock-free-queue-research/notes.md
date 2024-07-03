@@ -26,10 +26,10 @@ description: notes
 * The fetch\&add operation is quite flexible: it can be used for semaphores, for highly concurrent queues, and even for database synchronization \[11, 14, 30]. Nevertheless, we show that it is not universal, disproving a conjecture of Gottlieb et al. \[11]. We also show that message-passing architectures such as hypercubes \[28] are not universal either
 *
 
-    <figure><img src="../.gitbook/assets/image.png" alt=""><figcaption><p>what is well-formed</p></figcaption></figure>
+    <figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption><p>what is well-formed</p></figcaption></figure>
 *
 
-    <figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+    <figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
 *   universal构建方法需要O(n^3)空间，显然不符合性能需要，终止阅读
 
 
