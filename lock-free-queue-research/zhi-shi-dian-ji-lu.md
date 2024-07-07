@@ -15,11 +15,14 @@ compare\_exchange\_weak可能由于硬件问题在\*r=oldvalue时替换失败，
 atomic\<shared\_ptr>在C++20才支持。
 
 * `std::memory_order_relaxed`: 不强制任何顺序。
-* `std::memory_order_consume`: 确保当前线程的依赖性读操作不会被重排。
+* `std::memory_order_consume`: 确保当前线程的依赖性读操作不会被重排。<mark style="color:purple;">no reads or writes in the current thread dependent on the value currently loaded can be reordered before this load.Writes to data-dependent variables in other threads that release the same atomic variable are visible in the current thread.</mark>
 * `std::memory_order_acquire`: 确保当前线程的后续读写操作不会被重排。用于读
 * `std::memory_order_release`: 确保当前线程的先前读写操作不会被重排。用于写
 * `std::memory_order_acq_rel`: 同时具有 acquire 和 release 的效果。用于读写
 * `std::memory_order_seq_cst`: 最严格的顺序，确保全局顺序性。
+* atomic\_thread\_fence比atomic\_signal\_fence多出cpu内存顺序的指令。
+* atomic\_thread\_fence保证不同线程之间通过release、和acq（其中一个是fence)的先后顺序可保证rel前的store在acq之后的load前发生。两个fence之间通过对同一原子对象的write和read的顺序可保证rel前的store在acq之后的load前发生。
+* Fence-fence synchronization can be used to add synchronization to a sequence of several relaxed atomic operations
 
 
 

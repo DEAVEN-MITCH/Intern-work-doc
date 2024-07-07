@@ -52,10 +52,19 @@ description: >-
   * char\*指针指向实际元素的地址，保证了Block的size对任一模板参数都是固定的（控制变量）。
   * sizeMask是实际能容纳元素个数，比data分配大小少1
   * rawThis指向make\_block中为对齐而分配到的原始块的大小。
+* fence(memory\_order\_sync)用来让所有相关线程同步。
+* ReentrantGuard用来在debug模式下指示是否多个消费者/生产者进入队列。
+* front完全由消费者更新，所以在消费者端不需要同步，生产者端需要同步。tail完全由生产者更新，同理。消费者拥有localTail,生产者拥有localFront.
+*
 
 ### members
 
-* largestBlockSize 由初始化的size参数决定，为size的二次幂顶或MAX\_BLOCK\_SIZE。若二次幂顶<=2\*MBS，则先分配一个MBS的块；否则将largestBlockSize更新为MAX\_BLOCK\_SIZE（此时size>MBS），并分配initialBlockCount个块,保证有一个空闲块外剩下的块slots大于等于size。
+* largestBlockSize 由初始化的size参数决定，为size的二次幂顶或MAX\_BLOCK\_SIZE。若二次幂顶<=2\*MBS，则先分配一个MBS的块；否则将largestBlockSize更新为MAX\_BLOCK\_SIZE（此时size>MBS），并分配initialBlockCount个块,保证有一个空闲块外剩下的块slots大于等于size。构造结束时，最后一个block的next指向firstblock
+* 移动构造函数没有互斥处理，需要用户自己同步，构造后other只剩下一个新的块
+* 移动赋值函数交换各参数，间接交换块，需手动同步
+* 析构时 首先一个最强的内存同步来获取最新参数（即Frontblock,tailblock），随后依次对block中元素进行析构。这里对于sizeMask(低位全一数）用&比%快。
+* try\_xxx与xxx只是调用inner\_xxx这个模板函数，根据enum模板变量决定是否要分配空间。减少代码重复。
+*
 
 ### static member
 
@@ -64,13 +73,9 @@ description: >-
 * ceilToPow2是找到大于等于x的最小二次幂，利用位运算内联加速。
 * align\_for是一个找到U类型对象在ptr开始的地址中第一个对齐的地址，运用内联优化。
 
-### doubt
-
-1. 117行应该是大于等于号，否则不能保证largestBlockSize>=size+1?例如size=600,ceilToPow2(size+1)=1024,MSB=512满足largestBlockSize<=MSB\*2,而MSB\<size+1????
-
 ### atomicops.h
 
 * memory\_order这个枚举类用来提供统一的下层接口
 * 只考虑编译环境下用atomic库实现的atomicops.h内容，因为VS显示会这么编译
-*
+* weak\_atomic类封装了atomic的relaxed存取与加载，fetch\_add\_acquire是acquire语义，fetch\_add\_release是release语义。
 
