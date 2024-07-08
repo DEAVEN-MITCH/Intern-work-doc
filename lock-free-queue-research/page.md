@@ -2,7 +2,7 @@
 description: 记录关键点和疑问点
 ---
 
-# CMessageQueue源代码阅读
+# 😤 CMessageQueue源代码阅读
 
 ## CMessageQueue
 

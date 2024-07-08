@@ -8,10 +8,11 @@ description: >-
 
 ## 参考代码库
 
-* moodycamel::readerwriterqueue(spsc)
-* moodycamel::concurrentqueue(mpmc)
+* moodycamel::ReaderWriterQueue(spsc)
+* moodycamel::ConcurrentQueue(mpmc)
 * atomic\_queue::AtomicQueue(ε|2|B|B2)
-* boost::spsc
+* boost::lockfree::spsc\_queue
+* boost::lockfree::queue
 
 ## 简单无锁队列
 
@@ -19,7 +20,7 @@ description: >-
 * 有队列长度限制、有缓冲区的：用T\[]的buffer搭配头尾的index实现，其中头尾用atomic包装
 * spsc因可能指令重排下面理论不可行，必须借助atomic
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 * 用位域来存储引用计数并能支持无锁atomic操作，实现对node结点的正确释放？
 
@@ -79,3 +80,99 @@ description: >-
 * 只考虑编译环境下用atomic库实现的atomicops.h内容，因为VS显示会这么编译
 * weak\_atomic类封装了atomic的relaxed存取与加载，fetch\_add\_acquire是acquire语义，fetch\_add\_release是release语义。
 
+
+
+## moodycamel::BlockingReaderWriterQueue
+
+* 用了一个LightweightSemaphore来进行自旋等待、通知、定时阻塞。内部用ReaderWriterQueue作为子数据结构。提供阻塞和非阻塞接口。
+* SPSC
+
+## moodycamel::BlockingReaderWriterCircularBuffer
+
+* SPSC
+* 循环缓冲区，缓冲区大小一定。与ReaderWriterQueue不同，没有block。用LightweightSemaphore实现了自选等待、通知、定时阻塞的子功能。有阻塞和非阻塞接口。
+
+## moodycamel::ConcurrentQueue
+
+### Features
+
+* Knock-your-socks-off [blazing fast performance](http://moodycamel.com/blog/2014/a-fast-general-purpose-lock-free-queue-for-c++#benchmarks).
+* Single-header implementation. Just drop it in your project.
+* Fully thread-safe lock-free queue. Use concurrently from any number of threads.
+* C++11 implementation -- elements are moved (instead of copied) where possible.
+* Templated, obviating the need to deal exclusively with pointers -- memory is managed for you.
+* No artificial limitations on element types or maximum count.
+* Memory can be allocated once up-front, or dynamically as needed.
+* Fully portable (no assembly; all is done through standard C++11 primitives).
+* Supports super-fast bulk operations.
+* Includes a low-overhead blocking version (BlockingConcurrentQueue).
+* Exception safe.
+
+### Constraints
+
+* **not linearizable** (see the next section on high-level design). The foundations of its design assume that producers are independent; if this is not the case, and your producers co-ordinate amongst themselves in some fashion, be aware that the elements won't necessarily come out of the queue in the same order they were put in _relative to the ordering formed by that co-ordination_ (but they will still come out in the order they were put in by any _individual_ producer). If this affects your use case, you may be better off with another implementation; either way, it's an important limitation to be aware of.
+* **not NUMA aware**, and does a lot of memory re-use internally, meaning it probably doesn't scale particularly well on NUMA architectures; however, I don't know of any other lock-free queue that _is_ NUMA aware (except for [SALSA](http://webee.technion.ac.il/\~idish/ftp/spaa049-gidron.pdf), which is very cool, but has no publicly available implementation that I know of).
+* &#x20;**not sequentially consistent**; there _is_ a happens-before relationship between when an element is put in the queue and when it comes out, but other things (such as pumping the queue until it's empty) require more thought to get right in all eventualities, because explicit memory ordering may have to be done to get the desired effect. In other words, it can sometimes be difficult to use the queue correctly. This is why it's a good idea to follow the [samples](https://github.com/cameron314/concurrentqueue/blob/master/samples.md) where possible. On the other hand, the upside of this lack of sequential consistency is better performance.
+
+### Efforts
+
+*
+
+    <figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+### Reference links
+
+{% embed url="https://moodycamel.com/blog/2014/a-fast-general-purpose-lock-free-queue-for-c++" %}
+
+{% embed url="https://moodycamel.com/blog/2014/detailed-design-of-a-lock-free-queue" %}
+
+### Findings
+
+* a set of sub-queues is used,one for each producder thread.This means that different threads ca enqueue items completely in parallel, independently of each other.
+* All elements from a given producer thread will necessarily still be seen in that same order relative to each other when dequeued (since the sub-queue preserves that order), albeit with elements from other sub-queues possibly interleaved
+* 用cusumerToken来提供就近匹配的信息，而如果没有这个token就是平常的遍历
+* 每个子队列用的是数组而非链表，依然是blocks和innerindices，由于与Producer一一对应，tail无写竞争，head有写竞争，而head有回退机制防止出错。
+
+> So, that's the high-level design. What about the core algorithm used within each sub-queue? Well, instead of being based on a linked-list of nodes (which implies constantly allocating and freeing or re-using elements, and typically relies on a compare-and-swap loop which can be slow under heavy contention), I based my queue on an array model. Instead of linking individual elements, I have a "block" of several elements. The logical head and tail indices of the queue are represented using atomically-incremented integers. Between these logical indices and the blocks lies a scheme for mapping each index to its block and sub-index within that block. An enqueue operation simply increments the tail (remember that there's only one producer thread for each sub-queue). A dequeue operation increments the head if it sees that the head is less than the tail, and then it checks to see if it accidentally incremented the head past the tail (this can happen under contention -- there's multiple consumer threads per sub-queue). If it did over-increment the head, a correction counter is incremented (making the queue eventually consistent), and if not, it goes ahead and increments another integer which gives it the actual final logical index. The increment of this final index always yields a valid index in the actual queue, regardless of what other threads are doing or have done; this works because the final index is only ever incremented when there's guaranteed to be at least one element to dequeue (which was checked when the first index was incremented)
+
+* 批处理性能对于block而言是优越的
+* o simplify the interface, if no token is provided by the user for a producer, [a lock-free hash table](#user-content-fn-1)[^1] is used (keyed to the current thread ID) to look up a thread-local producer queue
+* 批处理时的活锁可能性？
+
+> Since tokens contain what amounts to thread-specific data, they should never be used from multiple threads simultaneously (although it's OK to transfer ownership of a token to another thread; in particular, this allows tokens to be used inside thread-pool tasks even if the thread running the task changes part-way through)
+
+* All the producer queues link themselves together into a lock-free linked list.
+*
+
+## boost::lockfree::queue
+
+* mpmc
+* CAS循环入列，底层用链表
+* detail::select\_freelist\<node, node\_allocator, compile\_time\_sized, fixed\_sized, capacity>::type pool\_t;似乎是一个内存池来管理新节点的内存分配,具体是一个可扩容的空闲链表
+* 节点的next是原子变量，队列的head和tail为原子变量
+
+## boost::lockfree::spsp\_queue
+
+* 满满的模板，层次交错，用模板元来降低耦合度，扩展性较高。
+* 基于ringbuffer,其中定长与不定长均基于ringbuffer\_base，而ringbuffer\_base中也用了padding让write\_index\_和read\_index\_不在同一缓存行。
+* 基于同一块内存上的write\_index和read\_index\_管理，index均指的是在指定buffer上的字节偏移量，均为原子变量。
+*
+
+    ```cpp
+    Requirements:
+     *  - T must have a default constructor
+     *  - T must be copyable or movable
+    ```
+
+## DNedic/lockfree::spsc::Queue
+
+* 仅支持push和pop,利用循环缓冲区和read、write的atomic变量实现。
+
+## DNedic/lockfree::mpmc::Queue
+
+* 仅支持push和pop，利用循环缓冲区实现，为避免竞争，每个元素都被slot封装，每个slot包含push\_count和pop\_countatomic变量用于防止竞争，对r、w\_counts队列的原子变量进行cas循环来获得竞争权。
+* 显然O(size)个atomic变量降低了性能预期
+
+
+
+[^1]: what?
