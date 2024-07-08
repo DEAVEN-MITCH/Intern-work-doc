@@ -173,6 +173,17 @@ description: >-
 * 仅支持push和pop，利用循环缓冲区实现，为避免竞争，每个元素都被slot封装，每个slot包含push\_count和pop\_countatomic变量用于防止竞争，对r、w\_counts队列的原子变量进行cas循环来获得竞争权。
 * 显然O(size)个atomic变量降低了性能预期
 
+## max0x7ba/atomic\_queue::AtomicQueue
 
+### Design Principles
+
+* Bare minimum of atomic instructions. Inlinable by default push and pop functions can hardly be any cheaper in terms of CPU instruction number / L1i cache pressure.
+* Explicit contention/false-sharing avoidance for queue and its elements.
+* Linear fixed size ring-buffer array. No heap memory allocations after a queue object has constructed. It doesn't get any more CPU L1d or TLB cache friendly than that.
+* Value semantics. Meaning that the queues make a copy/move upon `push`/`pop`, no reference/pointer to elements in the queue can be obtained.
+
+***
+
+**任务改变，暂停调研。**
 
 [^1]: what?
