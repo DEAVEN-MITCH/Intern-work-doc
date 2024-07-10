@@ -34,3 +34,8 @@ description: notes
 
 
 
+## 模板相关
+
+* 继承模板类时，模板类方法不可见，得using才能找到（可能是C++11问题）
+* using xx::template xxx不会用，错的
+* C++11不支持返回值auto
