@@ -20,7 +20,7 @@ description: >-
 * 有队列长度限制、有缓冲区的：用T\[]的buffer搭配头尾的index实现，其中头尾用atomic包装
 * spsc因可能指令重排下面理论不可行，必须借助atomic
 
-<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 * 用位域来存储引用计数并能支持无锁atomic操作，实现对node结点的正确释放？
 
@@ -118,7 +118,7 @@ description: >-
 
 *
 
-    <figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+    <figure><img src="../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
 
 ### Reference links
 
