@@ -12,3 +12,4 @@
 * [😘 7.16测试进度](lock-free-queue-research/7.16-ce-shi-jin-du.md)
 * [7.17测试](lock-free-queue-research/7.17-ce-shi.md)
 * [7.18测试](lock-free-queue-research/7.18-ce-shi.md)
+* [7.19测试](lock-free-queue-research/7.19-ce-shi.md)
