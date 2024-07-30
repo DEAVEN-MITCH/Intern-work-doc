@@ -15,3 +15,4 @@
 * [7.19测试](lock-free-queue-research/7.19-ce-shi.md)
 * [7.22Tracy](lock-free-queue-research/7.22tracy.md)
 * [7.23、24Tracy](lock-free-queue-research/7.23-24tracy.md)
+* [7.26](lock-free-queue-research/7.26.md)
