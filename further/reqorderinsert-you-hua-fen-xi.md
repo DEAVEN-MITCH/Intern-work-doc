@@ -12,23 +12,33 @@ description: 以下耗时可能因时间戳而具有几μs/几百ns误差
 
 15μs,其中构造新NetRequest2-3μs，makexxxATPInputOrder18μs,其他分支不清楚，BuildHeader1-2μs
 
+由于frame数量与makexxinputOrder数量一样而少于makeRequest数量，认为优化目标是xxxorder而不是其他分支。
+
 ### makexxxInputOrder
 
 分4个部分，2为8μs，4为6μs，1为2.5μs，3为百纳秒可忽略不计
 
 #### makexxxInputOrder1
 
+总共2.4微秒左右，分为4部分
+
+260ns,120ns,1.8μs,120ns
+
+第一个部分就是一个枚举赋值，应该是内存为缓存访问耗时几百纳秒，第二个部分是一个静态转换， 第四个是一个if判断，成功抛异常。第三个部分是unordered\_map的find操作，换成map慢了150ns左右，不行。优化Hash函数？不直接，风险高，暂不考虑。
+
+order1结束。
+
 #### makexxxInputOrder2
 
 即绝大部分为initUrlPath部分。这一部分分为3个部分，其中第三部分占比最大
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
 
 initurlpath1是if\_else+字符串拼接，没有显著优化空间，initurlpath2是字符串拼接，没有显著优化空间。
 
 initulPath3再细分为4个部分，其中1、2没有触发，3占2.4μs,4占1.3μs
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
 
 initUrlPath3\_3中self是if-else+字符串拼接调用了NormalizePriceString才造就的。
 
@@ -38,7 +48,7 @@ initUrlPath3\_4中有一个"&"的+=，改成push\_back('&'),结果始终在误�
 
 urlPathsize大概是150少一些
 
-<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3) (1).png" alt=""><figcaption></figcaption></figure>
 
 reserve 160后initurlPath提升了400多ns,总体没提升，可能是影响小于误差。reserve 512后提升了将近1微秒，总体也没提升，看Self only时间发现HMAC平均多了3微秒，应该是HMAC不稳定导致整体结果变差。
 
@@ -68,7 +78,39 @@ mutex方法非inline，经查询，inline优化仅几个ns，忽略不计。
 
 <figure><img src="../.gitbook/assets/image (17).png" alt=""><figcaption><p>Debug版防止编译器优化，进行测试</p></figcaption></figure>
 
+addrequest方法中，前两个区域中位数只有100+ns，最后一个有近3微秒。
 
+<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+其中这个3微秒的区域也有多个函数调用，拆分开来看，一个1.4微秒的时间函数调用（boost库，觉得不能轻易优化），一个1微秒的其他（3\_2)。
+
+再拆。应该是Holder对象变量的赋值占主要矛盾（700ns），make\_pair只占350ns，其他可忽略。不好优化。
+
+如果再有log,log更要占大头，10微秒左右，其他部分5微，不是主要矛盾。
+
+addrequest结束。
+
+order4结束
+
+order结束
+
+### makerequest order前后
+
+前1.7μs,500ns,后110ns,1.6μs
+
+第一个部分为new NetRequest并赋值到shared\_ptr中，由于该结构体包含众多复杂子结构，new起来为主要开销，第二个部分为reserve512字节，500ns，显然利大于弊，第三部分为一个bool赋值，110ns……。
+
+将nrqshared\_ptr的间接访问改为裸指针的间接访问，减少一层嵌套，结果如下：
+
+<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption><p>raw ptr</p></figcaption></figure>
+
+<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption><p>shared ptr</p></figcaption></figure>
+
+有近一微秒的性能提升。
+
+为了测试temp变量的效果是否源于避免shared\_ptr的间接访问，控制变量进行测试（raw ptr版+non temp）比temp版慢近1μs。
+
+***
 
 ## onFlowControl
 
