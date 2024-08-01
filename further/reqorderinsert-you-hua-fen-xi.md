@@ -108,7 +108,13 @@ order结束
 
 有近一微秒的性能提升。
 
-为了测试temp变量的效果是否源于避免shared\_ptr的间接访问，控制变量进行测试（raw ptr版+non temp）比temp版慢近1μs。
+为了测试temp变量的效果是否源于避免shared\_ptr的间接访问，控制变量进行测试（raw ptr版+non temp）比temp版慢近1μs。重测两遍，中位数分别慢0.3、0.58μs，说明temp有效。
+
+注释掉NetRequest中不用的部分，优化了new时间1μs。
+
+
+
+
 
 ***
 
