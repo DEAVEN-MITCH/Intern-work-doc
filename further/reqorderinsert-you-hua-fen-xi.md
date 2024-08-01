@@ -112,12 +112,43 @@ order结束
 
 注释掉NetRequest中不用的部分，优化了new时间1μs。
 
+第四部分为buildHeader，函数很简单，emplace\_back一个string，没什么优化空间。换成inline会破坏头文件风格，内联优化估计也没几个ns，决定不动。
 
+makeRequest结束。
 
 
 
 ***
 
+makeRequest和onFlowControl间隔了1μs,是setTool的调用，setTool为一个lambda表达式，传入shared\_ptr，shared\_ptr间接内容被赋值。由于被赋值的是两个string成员，占比较大，间接引用非主要矛盾，不需要吹毛求疵地优化。实测setTool600ns左右，string赋值为主。
+
 ## onFlowControl
 
-55+μs
+55+μs 8.1测median为53μs，postRequest前5μs，postRequest46μs
+
+### postRequest前
+
+5，5.5μs。分为四个部分，中位数550ns,120ns,3.7μs,110ns，（第一部分前Zone的构建要500ns+……）
+
+第一部分为Unordered\_map的find,显然优化困难，map更差，不考虑。第二部分为一个if判断，真则log，120ns无法更优化。第四部分也是if判断可能LOG，无法更优化。第三部分占比较多。第三部分分为tuple的get和一个check函数。经测试get占几十一百ns，check占3μs+，为主要矛盾。check中是>=3个map的find，不知道是干嘛的，map改不了，因为他会被顺序遍历,不好改。更深入的函数调用由于看不懂数据结构含义，不好改，以后再说。
+
+### postRequest
+
+划分为四个区域后，耗时为47μs
+
+300ns,19μs,7μs,17μs
+
+onRequestReturn不在帧内，约200μs。
+
+第一个部分 考虑raw ptr优化，测试总体结果在1微的误差范围内，算了。
+
+第二个部分就是onPreSend，走的是if\_true,内容是getSign+字符串拼接。字符串拼接可能怕signature不是原子性加入urlPath,加了个括号？但+=本身并不是原子的，如果用两个+=可以提升？
+
+第三个部分中有stringstream,单独拆分来看。stringstream构造近1.9微，格式化输入2.1微，static\_cast80ns，取str400ns，LOG1.7微。测出来stringstream的str大小介于100-300之间。
+
+用一个512的字符数组替代Stringstream的功能，利用snprintf格式化输出，将整个第三部分优化到3μs左右，优化效果为4-5微，整体有6微。但因为涉及日志库部分，暂时不用优化，不管它。
+
+
+
+
+
