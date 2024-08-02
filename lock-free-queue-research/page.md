@@ -43,5 +43,9 @@ Process在wait前切换到Stop,然后Stop完Process进行wait，永不唤醒了�
 
 值变量公开成员，PostSpiMsg调用Post方法，初始化调用Run,析构调用Stop,某方法调用PostSpiMsg间接Post。
 
+### 测试方向
 
+* 各函数耗时
+* Post到Process的延时
+* 占用率？内存？吞吐量？
 

@@ -142,13 +142,15 @@ onRequestReturn不在帧内，约200μs。
 
 第一个部分 考虑raw ptr优化，测试总体结果在1微的误差范围内，算了。
 
-第二个部分就是onPreSend，走的是if\_true,内容是getSign+字符串拼接。字符串拼接可能怕signature不是原子性加入urlPath,加了个括号？但+=本身并不是原子的，如果用两个+=可以提升？
+第二个部分就是onPreSend，走的是if\_true,内容是getSign+字符串拼接。字符串拼接可能怕signature不是原子性加入urlPath,加了个括号？但+=本身并不是原子的，如果用两个+=可以提升，从420ns提升到230ns。
+
+getSign……
 
 第三个部分中有stringstream,单独拆分来看。stringstream构造近1.9微，格式化输入2.1微，static\_cast80ns，取str400ns，LOG1.7微。测出来stringstream的str大小介于100-300之间。
 
 用一个512的字符数组替代Stringstream的功能，利用snprintf格式化输出，将整个第三部分优化到3μs左右，优化效果为4-5微，整体有6微。但因为涉及日志库部分，暂时不用优化，不管它。
 
-
+> 由于可能要换接口，PostRequest的优化可能无用武之地，停止。
 
 
 
