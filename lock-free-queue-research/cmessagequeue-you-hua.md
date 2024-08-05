@@ -41,3 +41,11 @@ Process5 为task的move
 Process6为task的执行，其中遍历460ns，执行任务14μs
 
 Process总耗时52s，Processtasks耗时3s，近16/17的时间都是Process3在wait cv，不占用cpu。
+
+
+
+## 优化方向
+
+用futex代替conditional\_variable。
+
+由于线程唤醒开销是10μs级，可能优化用途不大。
