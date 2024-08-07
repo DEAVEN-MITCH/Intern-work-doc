@@ -38,7 +38,7 @@ initurlpath1是if\_else+字符串拼接，没有显著优化空间，initurlpath
 
 initulPath3再细分为4个部分，其中1、2没有触发，3占2.4μs,4占1.3μs
 
-<figure><img src="../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 initUrlPath3\_3中self是if-else+字符串拼接调用了NormalizePriceString才造就的。
 
@@ -48,7 +48,7 @@ initUrlPath3\_4中有一个"&"的+=，改成push\_back('&'),结果始终在误�
 
 urlPathsize大概是150少一些
 
-<figure><img src="../.gitbook/assets/image (3) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 reserve 160后initurlPath提升了400多ns,总体没提升，可能是影响小于误差。reserve 512后提升了将近1微秒，总体也没提升，看Self only时间发现HMAC平均多了3微秒，应该是HMAC不稳定导致整体结果变差。
 
@@ -80,7 +80,7 @@ mutex方法非inline，经查询，inline优化仅几个ns，忽略不计。
 
 addrequest方法中，前两个区域中位数只有100+ns，最后一个有近3微秒。
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
 
 其中这个3微秒的区域也有多个函数调用，拆分开来看，一个1.4微秒的时间函数调用（boost库，觉得不能轻易优化），一个1微秒的其他（3\_2)。
 
@@ -102,9 +102,9 @@ order结束
 
 将nrqshared\_ptr的间接访问改为裸指针的间接访问，减少一层嵌套，结果如下：
 
-<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption><p>raw ptr</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption><p>raw ptr</p></figcaption></figure>
 
-<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption><p>shared ptr</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3) (1).png" alt=""><figcaption><p>shared ptr</p></figcaption></figure>
 
 有近一微秒的性能提升。
 

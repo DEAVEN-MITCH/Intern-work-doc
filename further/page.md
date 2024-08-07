@@ -115,9 +115,34 @@ padding 可通过offset属性实现
 
 <figure><img src="../.gitbook/assets/image (34).png" alt=""><figcaption></figcaption></figure>
 
+Note that padding will only result in deterministic alignment if the repeating group contains no variable-length fields.组和消息的尾部填充可以通过blockLength实现，在不考虑变长字段的情况下。
+
+Each group is associated with a required counter field of semantic data type NumInGroup to tell how many entries are contained by a message. The value of the counter is a non-negative integer. See section Encoding of repeating group dimensions for details.
+
+The space reserved for all entries of a group is the product of the space reserved for each entry times the value of the associated NumInGroup counter. If the counter field is set to zero, then no entries are sent in the message, and no space is reserved for entries. The group dimensions including the zero-value counter is still transmitted, however.零元素组的组维度仍然会被传输，而条目不占空间。
+
+<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+
+Nested repeating groups are encoded on the wire by a depth-first walk of the data hierarchy. For example, all inner entries under the first outer entry must be encoded before encoding outer entry 2. (This is the same element order as FIX tag=value encoding.)解码时无法直接地址访问，必须挨个访问得到数量信息。
+
 
 
 {% embed url="https://github.com/FIXTradingCommunity/fix-simple-binary-encoding/blob/master/v1-0-STANDARD/doc/publication/Simple%20Binary%20Encoding%20-%20Technical%20Specification%20version1-0.pdf" %}
 English version of pdf document
 {% endembed %}
 
+## SBE接口
+
+{% embed url="https://github.com/binance/binance-spot-api-docs/blob/master/sbe/schemas/spot_2_0.xml" %}
+最新的sbe shema
+{% endembed %}
+
+{% embed url="https://github.com/binance/binance-sbe-cpp-sample-app?tab=readme-ov-file" %}
+示例sbe接口
+{% endembed %}
+
+<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+
+simple-binary-encoding的代码生成器直接根据xml生成对应的代码，用于解析sbe流。
