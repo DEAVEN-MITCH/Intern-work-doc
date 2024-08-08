@@ -121,11 +121,19 @@ Each group is associated with a required counter field of semantic data type Num
 
 The space reserved for all entries of a group is the product of the space reserved for each entry times the value of the associated NumInGroup counter. If the counter field is set to zero, then no entries are sent in the message, and no space is reserved for entries. The group dimensions including the zero-value counter is still transmitted, however.零元素组的组维度仍然会被传输，而条目不占空间。
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
-
 <figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
+<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+
 Nested repeating groups are encoded on the wire by a depth-first walk of the data hierarchy. For example, all inner entries under the first outer entry must be encoded before encoding outer entry 2. (This is the same element order as FIX tag=value encoding.)解码时无法直接地址访问，必须挨个访问得到数量信息。
+
+If a group contains nested repeating groups, then a NumInGroup counter of zero implies that both that group and its child groups are empty. In that case, no NumInGroup is encoded on the wire for the child groups.空组的子组信息不存在。
+
+By default, the name of the group dimension encoding is groupSizeEncoding. This name may be overridden by setting the dimensionType attribute of a element.
+
+<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption><p>xsd定义消息体的成员顺序</p></figcaption></figure>
+
+内嵌组的顺序和消息体的顺序相同，递归定义
 
 
 
@@ -143,6 +151,10 @@ English version of pdf document
 示例sbe接口
 {% endembed %}
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
 
 simple-binary-encoding的代码生成器直接根据xml生成对应的代码，用于解析sbe流。
+
+## 变故
+
+由于biance目前只支持现货的sbe response，与期货报单的需求不匹配，所以放弃。

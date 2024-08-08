@@ -32,7 +32,7 @@ order1结束。
 
 即绝大部分为initUrlPath部分。这一部分分为3个部分，其中第三部分占比最大
 
-<figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (4) (1).png" alt=""><figcaption></figcaption></figure>
 
 initurlpath1是if\_else+字符串拼接，没有显著优化空间，initurlpath2是字符串拼接，没有显著优化空间。
 
@@ -80,7 +80,7 @@ mutex方法非inline，经查询，inline优化仅几个ns，忽略不计。
 
 addrequest方法中，前两个区域中位数只有100+ns，最后一个有近3微秒。
 
-<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
 
 其中这个3微秒的区域也有多个函数调用，拆分开来看，一个1.4微秒的时间函数调用（boost库，觉得不能轻易优化），一个1微秒的其他（3\_2)。
 
