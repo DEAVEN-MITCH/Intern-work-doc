@@ -23,3 +23,4 @@
 * [sprintf](further/sprintf.md)
 * [ReqOrderInsert优化分析](further/reqorderinsert-you-hua-fen-xi.md)
 * [SBE](further/page.md)
+* [cpp 中的Python 调用](further/cpp-zhong-de-python-diao-yong.md)
