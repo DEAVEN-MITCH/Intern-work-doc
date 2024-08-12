@@ -600,3 +600,72 @@ print(result)  # 输出：5
 > * `pybind11` 对 C++11 及以上的标准有要求，因此在使用时需要确保编译器支持 C++11 或更高版本。
 >
 > 总之，在开发过程中，推荐使用最新的 Python 3 版本和现代 C++ 标准来确保最佳的性能和功能支持。
+
+## anaconda 和conda的关系
+
+> Conda 和 Anaconda 是两个相关但不同的概念，主要区别在于它们的作用和范围。
+>
+> 1. **Conda**:
+>    * Conda 是一个开源的包管理系统和环境管理器，最初是为 Python 语言设计的，但现在也支持其他编程语言，如 R、Ruby、Lua 等。
+>    * Conda 可以帮助用户安装、运行和管理软件包以及它们的依赖关系，同时还可以创建和管理独立的环境。通过 Conda，你可以轻松地在同一台计算机上管理多个不同版本的 Python 和其他包。
+> 2. **Anaconda**:
+>    * Anaconda 是一个数据科学和机器学习的平台，它包含了 Conda 以及其他许多工具和库。Anaconda 提供了一个开箱即用的解决方案，集成了数百个常用的科学计算、数据分析、机器学习库，如 NumPy、Pandas、Scikit-learn、Jupyter Notebook 等。
+>    * Anaconda 包含了 Conda，所以当你安装 Anaconda 时，你也同时安装了 Conda。Anaconda 是为数据科学家、数据分析师和其他开发人员设计的，旨在提供一个功能齐全的开发环境。
+>
+> 总结来说，**Conda 是 Anaconda 平台的一部分**。你可以单独使用 Conda 管理包和环境，也可以通过安装 Anaconda 获得一个完整的、预配置的开发环境，其中包含 Conda 以及许多其他工具和库。
+
+## 为什么conda目录下有pip？
+
+>
+>
+> **conda** 和 **pip** 都是 Python 的包管理工具，但它们在功能和设计上有各自的侧重点。你可能会在 conda 创建的环境中发现 pip 的存在，这主要是因为以下原因：
+>
+> #### 1. **conda 的包生态系统和 pip 的互补**
+>
+> * **conda** 主要管理 Anaconda 自身维护的包，以及一些第三方包。它提供了更全面的环境管理功能，可以创建隔离的 Python 环境。
+> * **pip** 主要从 PyPI（Python Package Index）上下载安装包。PyPI 上的包数量庞大，conda 并不包含所有包。
+> * **互补性：** 为了方便用户，conda 环境中通常会预装 pip，这样用户可以直接使用 pip 安装 PyPI 上的包，而无需切换到全局 Python 环境。
+>
+> #### 2. **conda 环境的灵活性**
+>
+> * **自定义环境：** conda 可以创建自定义的 Python 环境，每个环境都有独立的包和依赖。
+> * **pip 的集成：** 在这些自定义环境中，pip 可以用来安装那些 conda 仓库中没有的包，从而增加了环境的灵活性。
+>
+> #### 3. **历史原因**
+>
+> * **Anaconda 的发展：** Anaconda 起初是为了方便数据科学工作者快速搭建 Python 环境，因此集成了 pip。
+> * **用户习惯：** 许多 Python 开发者习惯使用 pip，为了满足用户需求，conda 自然也保留了对 pip 的支持。
+>
+> **总结**
+>
+> conda 目录下存在 pip，主要是因为 conda 希望提供一个更加灵活和全面的包管理环境。通过集成 pip，conda 用户可以方便地从 PyPI 上安装各种 Python 包，从而满足不同的开发需求。
+>
+> **何时使用 conda，何时使用 pip？**
+>
+> * **conda：**
+>   * 创建独立的 Python 环境
+>   * 安装 Anaconda 自带的包或 conda-forge 上的包
+>   * 管理多个 Python 版本
+> * **pip：**
+>   * 安装 PyPI 上的包
+>   * 在 conda 环境中补充缺少的包
+>
+> **一般来说，conda 更适合用于管理整个 Python 环境，而 pip 更适合用于在 conda 环境中安装特定的包。**
+>
+> **需要注意的是：**
+>
+> * 在 conda 环境中使用 pip 安装的包，其位置可能与 conda 安装的包不同。
+> * 如果同时使用 conda 和 pip，需要注意包之间的依赖关系，避免冲突。
+
+## 操作记录
+
+1. 安装cmake
+2. 安装用户目录下anaconda
+3. 修改anaconda的用户配置
+4. 在自己目录下创建anaconda环境pybind11\_env,python版本为python3.10，因为11和12安装不了：conda create -n pybind11\_env python=3.10;conda activate pybind11\_env;conda install -c conda-forge pybind11。产生四个pybind 的include文件夹在环境中。conda remove pybind 和 conda remove pybind-global后分别删除。local/include下的pybind11删不掉，估计不是我安装的。
+5. 重新安装后出现4个pybind，包括两个pybind11和两个pybind11\_global
+6.
+
+
+
+1.
