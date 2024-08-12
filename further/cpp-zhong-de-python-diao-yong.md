@@ -657,6 +657,13 @@ print(result)  # 输出：5
 > * 在 conda 环境中使用 pip 安装的包，其位置可能与 conda 安装的包不同。
 > * 如果同时使用 conda 和 pip，需要注意包之间的依赖关系，避免冲突。
 
+## makefile
+
+> 在之前的 Makefile 中，有两个目标：
+>
+> 1. **`all` 目标**：这是默认的构建目标，用于编译所有的源文件并生成共享库（`.so` 文件）。如果你运行 `make` 或 `make all`，它会生成 `libpython3.12.so` 文件。
+> 2. **`install` 目标**：这个目标是用来安装已经生成的共享库（`.so` 文件）。它会将生成的 `libpython3.12.so` 文件复制到你指定的安装目录（`INSTALL_DIR`）。通常是在构建成功后使用，以确保生成的文件被放置到正确的位置。如果你运行 `make install`，它会执行 `all` 目标并安装生成的 `.so` 文件。
+
 ## 操作记录
 
 1. 安装cmake
@@ -664,8 +671,31 @@ print(result)  # 输出：5
 3. 修改anaconda的用户配置
 4. 在自己目录下创建anaconda环境pybind11\_env,python版本为python3.10，因为11和12安装不了：conda create -n pybind11\_env python=3.10;conda activate pybind11\_env;conda install -c conda-forge pybind11。产生四个pybind 的include文件夹在环境中。conda remove pybind 和 conda remove pybind-global后分别删除。local/include下的pybind11删不掉，估计不是我安装的。
 5. 重新安装后出现4个pybind，包括两个pybind11和两个pybind11\_global
-6.
+
+## 配置
+
+附加包含目录pybind11头文件目录“pybind11"的父目录和python3.10的头文件目录
+
+附加库目录到python3.10so所在目录
+
+库依赖项python3.10，来动态链接
+
+连接器命令行增加-Wl,-rpath,/home……（附加库目录python运行so的位置）
 
 
 
-1.
+1. 将pybind源文件直接复制是可以include不报错的
+
+
+
+## python3.12源代码VS编译配置
+
+* 生成文件项目
+* 包括自动包含的文件，\*.in,configure,config.sub,config.guess,install-sh,Modules/Setup
+
+由于改包含文件老是重新上传文件，并且configure标志位比较陌生，改为上传tar.xz，在编译机上解压配置编译。--enable-shared似乎有问题。
+
+## yum安装python 到指定目录
+
+失败，无法控制。
+
