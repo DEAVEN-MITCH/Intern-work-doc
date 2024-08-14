@@ -685,6 +685,7 @@ print(result)  # 输出：5
 
 
 1. 将pybind源文件直接复制是可以include不报错的
+2. 手动编译生成的python的头文件和动态库用于pybind的包含或链接是可行的
 
 
 
@@ -698,4 +699,27 @@ print(result)  # 输出：5
 ## yum安装python 到指定目录
 
 失败，无法控制。
+
+## xz安装包上传并编译
+
+* 解压，改执行权限，执行
+* MSBuild生成返回值设置
+* configure选项确定
+* with-sslxxx选项指定ssl库目录
+
+### 3.12.5
+
+<figure><img src="../.gitbook/assets/image (35).png" alt=""><figcaption><p>报错</p></figcaption></figure>
+
+似乎只要加上PATH和PYTHONPATH的环境变量的修改再重新生成（先make clean)就可以成功生成so
+
+控制变量，同时去掉，生成不了；去掉PATH，重新生成不了；去掉PYTHONPATH，重新生成不了。两个都得加。
+
+似乎因为结尾多了个/导致编译失败，可能也导致控制变量失败。。。。
+
+分析需要增加PATH的原因：make会在编译目录下生成一个python,后续生成.so时需要用到该python,而python命令为外部命令，默认从PATH中寻找，不添加PATH会调用系统版本python然后出错？
+
+<figure><img src="../.gitbook/assets/image (36).png" alt=""><figcaption><p>缺少的模块</p></figcaption></figure>
+
+
 
