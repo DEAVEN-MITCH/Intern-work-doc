@@ -719,7 +719,34 @@ print(result)  # 输出：5
 
 分析需要增加PATH的原因：make会在编译目录下生成一个python,后续生成.so时需要用到该python,而python命令为外部命令，默认从PATH中寻找，不添加PATH会调用系统版本python然后出错？
 
+
+
+* 结果是，enable-optimizations与gcc 4.8.5低版本不兼容，gcc有优化Bug。去掉就好。之前的偶发成功是因为某个configure没有带enable-optimizations并且没有被彻底清除。与PATH、PYTHONPATH无关。去掉enable-optimizations的configure选项后编译成功。尝试复制到新项目，检验能否一键生成。
+
+{% embed url="https://github.com/python/cpython/issues/94825" %}
+
 <figure><img src="../.gitbook/assets/image (36).png" alt=""><figcaption><p>缺少的模块</p></figcaption></figure>
 
+sqlite3缺少sqlite3\_trace\_v2的符号，
+
+<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+
+这是一个版本问题，我们的sqlite3似乎是0.8.6版本，而要求3.14版本以上。。
+
+<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
 
 
+
+<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+
+ssl是路径问题，找不到OpenSSL目录，include文件夹也找不到。设置--with-openssl-rpath来指定动态链接的目录后问题照旧，
+
+<figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+
+改为Openssl源代码路径，发现版本有问题，小于1.1.1，/usr/local/openssl/include/openssl和/usr/include/openssl中的版本均为1.0.x。/usr/local/bin/openssl的版本为3.0.9，
+
+Openssl1.1.1w编译后将构建目录作为python的openssl选项后ssl构建成功
+
+生成文件共300M+，其中Python的静态.a占89M,使用without-static-libpython选项不构建该静态库。

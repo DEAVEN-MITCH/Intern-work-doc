@@ -121,9 +121,9 @@ Each group is associated with a required counter field of semantic data type Num
 
 The space reserved for all entries of a group is the product of the space reserved for each entry times the value of the associated NumInGroup counter. If the counter field is set to zero, then no entries are sent in the message, and no space is reserved for entries. The group dimensions including the zero-value counter is still transmitted, however.零元素组的组维度仍然会被传输，而条目不占空间。
 
-<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 Nested repeating groups are encoded on the wire by a depth-first walk of the data hierarchy. For example, all inner entries under the first outer entry must be encoded before encoding outer entry 2. (This is the same element order as FIX tag=value encoding.)解码时无法直接地址访问，必须挨个访问得到数量信息。
 
@@ -143,11 +143,11 @@ For a composite type, nullness is indicated by the value of its first element. F
 
 A composite type often has its elements defined in-line within the XML element as shown in the example above. Alternatively, a common type may be defined once on its own, and then referred to by name with the composite type using a element.
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
 
 An enumeration explicitly lists the valid values of a data domain. Any number of fields may share the same enumeration.
 
-<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 To define a message type, add a element to the root element of the XML document, . The name and id attributes are required. The first is a display name for a message, while the latter is a unique numeric identifier, commonly called template ID.
 
@@ -155,11 +155,11 @@ By default, message size is the sum of its field lengths. However, a larger size
 
 Note that there need not be a one-to-one relationship between message template (identified by id attribute) and semanticType attribute. You might design multiple templates for the same FIX MsgType to optimize different scenarios.
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3) (1).png" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../.gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (5) (1).png" alt=""><figcaption></figcaption></figure>
 
 <figure><img src="../.gitbook/assets/image (6).png" alt=""><figcaption></figcaption></figure>
 
@@ -181,7 +181,7 @@ English version of pdf document
 示例sbe接口
 {% endembed %}
 
-<figure><img src="../.gitbook/assets/image (3) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 simple-binary-encoding的代码生成器直接根据xml生成对应的代码，用于解析sbe流。
 
