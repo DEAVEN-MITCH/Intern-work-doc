@@ -749,4 +749,33 @@ ssl是路径问题，找不到OpenSSL目录，include文件夹也找不到。设
 
 Openssl1.1.1w编译后将构建目录作为python的openssl选项后ssl构建成功
 
-生成文件共300M+，其中Python的静态.a占89M,使用without-static-libpython选项不构建该静态库。
+生成文件共300M+，其中Python的静态.a占89M,使用without-static-libpython选项不构建该静态库，减少到只有200M多。设置--disable-test-modules后只剩100M
+
+
+
+将Python和pybind11放到解决方案中。发现将示例程序部署到部署机上不能运行，设置LD\_LIBRARYPATH仍然报错，设置PYTHONHOME为Python构建目录即可正常运行。可以用setenv设置环境变量。成功迁移到部署机上运行。
+
+configure中，prefix必须是绝对路径，否则会报错。
+
+sftp不上传软链接，上传软链接的链接目标。上传后仍能运行，说明暂时不影响。
+
+\--{without,diable}-{\_,}sqlite{3,}均失败
+
+\-L dir会比系统默认库目录有更高的优先级，-I也是（头文件目录）
+
+一般情况下，**`-Wl,-rpath` 的优先级高于 `LD_LIBRARY_PATH`**。
+
+&#x20;/usr/local/lib下的so有trace\_v2，设置-I,-L和-Wl,-rpath后成功编译sqlite3模块
+
+将sqlite3的头文件和so.0.8.6复制到构建目录下，链接失败。
+
+再将.so复制到构建目录下，configure符号查看成功。（软链接）但链接失败
+
+再将.so.0复制过去，链接成功。
+
+不知道为什么.so.0被优先链接。把.so.0.8.6改名为.so.0放到工程下，使得编译成功。
+
+由于编译机上的目录与部署机上不同，部署机可能需要设置LD\_LIBRARY\_PATH才能找到libsqlite3.so.0，也有可能因为已经设置了PYTHONHOME而不需要了？
+
+
+
