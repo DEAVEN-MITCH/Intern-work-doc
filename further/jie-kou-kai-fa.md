@@ -34,11 +34,19 @@ API（应用程序接口）和 SPI（服务提供者接口）是两种不同类�
 
 API 是软件系统与外界沟通的桥梁，用于调用功能。而 SPI 是为扩展系统提供定制实现的接口，用于增加新功能或替代默认实现。API 和 SPI 通常在一起工作，例如，一个框架通过 API 提供使用方式，通过 SPI 定制其行为。
 
-
+## 需求
 
 阅读接口wiki和提供的python接口信息，疑问：websocket?http?命名？项目位置？生成位置？实现接口继承什么基类？user/password?whl放在工程里？/安装好lib复制到工程里？自定义类型转换成Python类型？
 
-命名？
+websocke和http都需要，因为功能不重叠。算法和普通交易接口均继承，user\password给了测试的，whl放工程里生成时安装，自定义类型根据typedef原定义即可，不需要预先考虑变更。
+
+命名？HPI
+
+成员变量按需要套用，自定义结构按需要套用。
+
+CMessageQueue需要用的时候再用，暂时不需要。
+
+
 
 ## gc-sections
 
@@ -82,3 +90,142 @@ Modules created with pybind11 can be safely re-initialized after the interpreter
 Warning: Creating two concurrent scoped\_interpreter guards is a fatal error. So is calling initialize\_interpreter for a second time after the interpreter has already been initialized. Donot use the raw CPython API functions Py\_Initialize and Py\_Finalize as these do not properly handle the lifetime of pybind11’s internal data.
 
 不能有两个解释器，所以static变量给spi和api共享
+
+Creating multiple copies of scoped\_interpreter is not possible because it represents the main Python interpreter. Sub-interpreters are something different and they do permit the existence of multiple interpreters. This is an advanced feature of the CPython API and should be handled with care. pybind11 does not currently offer a C++ interface for sub-interpreters, so refer to the CPython documentation for all the details regarding this feature.
+
+次级解释器得用CPython的API
+
+The classes gil\_scoped\_release and gil\_scoped\_acquire can be used to acquire and release the global inter preter lock in the body of a C++ function call. In this way, long-running C++ code can be parallelized using multiple Python threads, but great care must be taken when any gil\_scoped\_release appear: if there is any way that the C++ code can access Python objects, gil\_scoped\_acquire should be used to reacquire the GIL. Taking Overriding virtual functions in Python as an example, this could be realized as follows (important changes highlighted):
+
+c++调用Python中def的函数（call）的时候会自动获取GIL,Python调C++的时候也会（但可以手动释放），需要C++长期运行时可以release再最后acquire，防止访问Python对象竞争
+
+* Do you have any global variables that are pybind11 objects or invoke pybind11 functions in either their constructor or destructor? You are generally not allowed to invoke any Python function in a global static context. We recommend using lazy initialization and then intentionally leaking at the end of the program.
+
+没有解释器环境下的初始化、Python函数调用会违背GIL?
+
+* Do you have any pybind11 objects that are members of other C++ structures? One commonly overlooked requirement is that pybind11 objects have to increase their reference count whenever their copy constructor is called. Thus, you need to be holding the GIL to invoke the copy constructor of any C++ class that has a pybind11 member. This can sometimes be very tricky to track for complicated programs Think carefully when you make a pybind11 object a member in another struct.
+
+pybind11 对象的复制是C++层面的复制，得用GIL(PythonC对象的复制不会call GIL?)
+
+* C++ destructors that invoke Python functions can be particularly troublesome as destructors can sometimes get invoked in weird and unexpected circumstances as a result of exceptions.
+
+由于析构可能被异常触发，这里对Python函数的调用的GIL获取可能陷入死锁（异常处理前解释器被析构？）
+
+* You should try running your code in a debug build. That will enable additional assertions within pybind11 that will throw exceptions on certain GIL handling errors (reference counting operations).
+
+用debug模式构建，检测引用计数操作
+
+
+
+## rsync同步
+
+`rsync` 是一个功能强大的工具，用于在本地和远程之间同步文件和目录。它的使用灵活多样，下面是 `rsync` 的基础用法及常见的几个场景。
+
+#### **基础用法**
+
+```bash
+rsync [选项] 源路径 目标路径
+```
+
+* **源路径**: 要复制的文件或目录，可以是本地路径或远程路径。
+* **目标路径**: 目标文件或目录的路径，也可以是本地或远程路径。
+
+#### **常见选项**
+
+* `-a` : 归档模式，递归复制目录并保留符号链接、权限、时间戳等。
+* `-v` : 显示详细输出信息。
+* `-z` : 在传输过程中压缩文件。
+* `-P` : 显示传输进度并保留部分传输的文件，以便中断后可以继续传输。
+* `--delete` : 删除目标目录中在源目录中不存在的文件，使目标目录与源目录完全一致。
+* `-r` : 递归复制目录（已包含在 `-a` 选项中）。
+* `-e ssh` : 通过 SSH 进行传输，用于加密和认证。
+
+#### **本地同步**
+
+1.  **将一个目录同步到另一个目录**:
+
+    ```bash
+    rsync -av /path/to/source/ /path/to/destination/
+    ```
+
+    * 将 `/path/to/source/` 目录下的所有内容复制到 `/path/to/destination/` 目录下。
+    * 注意：结尾的 `/` 表示目录的内容，而不包含该目录本身。
+
+#### **远程同步**
+
+2.  **将本地目录同步到远程服务器**:
+
+    ```bash
+    rsync -av /path/to/source/ user@remote_host:/path/to/destination/
+    ```
+
+    * 将本地目录 `/path/to/source/` 同步到远程服务器 `remote_host` 上的 `/path/to/destination/` 目录中。
+    * 通过 SSH 进行安全的传输。
+3.  **从远程服务器同步到本地**:
+
+    ```bash
+    rsync -av user@remote_host:/path/to/source/ /path/to/destination/
+    ```
+
+    * 将远程服务器 `remote_host` 上的 `/path/to/source/` 目录同步到本地 `/path/to/destination/` 目录中。
+
+#### **增量同步和删除**
+
+4.  **增量同步并删除目标中多余的文件**:
+
+    ```bash
+    rsync -av --delete /path/to/source/ /path/to/destination/
+    ```
+
+    * 同步时删除目标目录中在源目录中已删除的文件，使目标目录与源目录完全一致。
+
+#### **使用示例**
+
+1.  **本地文件夹同步**:
+
+    ```bash
+    rsync -av /home/user/documents/ /backup/documents/
+    ```
+2.  **通过 SSH 将本地文件夹同步到远程服务器**:
+
+    ```bash
+    rsync -avz -e ssh /home/user/documents/ user@remote_server:/backup/documents/
+    ```
+3.  **从远程服务器同步到本地**:
+
+    ```bash
+    rsync -avz -e ssh user@remote_server:/backup/documents/ /home/user/documents/
+    ```
+4.  **显示进度并压缩传输数据**:
+
+    ```bash
+    rsync -avzP /home/user/movies/ user@remote_server:/backup/movies/
+    ```
+
+#### **总结**
+
+`rsync` 是一个非常强大的工具，适用于本地和远程之间的高效文件同步和备份。通过不同的选项，你可以根据需要优化传输速度、保留文件属性、显示进度、删除目标中的多余文件等。
+
+`rsync` 判断文件是否发生变化主要基于以下几个标准：
+
+#### **1. 文件大小**
+
+`rsync` 首先比较源文件和目标文件的大小。如果文件大小不同，则认为文件发生了变化，需要同步。
+
+#### **2. 文件修改时间戳**
+
+`rsync` 默认还会检查文件的修改时间戳（mtime）。如果源文件的修改时间比目标文件的新，或者文件大小不同，那么 `rsync` 会认为文件发生了变化，并将其同步到目标位置。
+
+#### **3. 校验和（可选）**
+
+虽然默认情况下 `rsync` 主要依赖文件大小和修改时间戳来判断文件是否发生变化，但你也可以使用 `-c` 选项启用基于文件内容校验和的比较。启用此选项时，`rsync` 会计算源文件和目标文件的校验和（通常是 MD5 或 SHA1），并根据校验和是否相同来决定是否同步文件。
+
+```bash
+rsync -avc /path/to/source/ /path/to/destination/
+```
+
+**注意**：启用 `-c` 选项会增加同步的时间，因为计算校验和需要额外的处理。
+
+#### **总结**
+
+默认情况下，`rsync` 通过文件大小和修改时间戳来判断文件是否发生变化，这是一个快速且高效的方法。如果需要更精确的比较，可以使用 `-c` 选项进行基于校验和的比较，但这会增加同步的时间成本。
