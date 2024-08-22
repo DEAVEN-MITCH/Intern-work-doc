@@ -115,6 +115,8 @@ pybind11 对象的复制是C++层面的复制，得用GIL(PythonC对象的复制
 
 用debug模式构建，检测引用计数操作
 
+<figure><img src="../.gitbook/assets/image (38).png" alt=""><figcaption></figcaption></figure>
+
 
 
 ## rsync同步
@@ -229,3 +231,118 @@ rsync -avc /path/to/source/ /path/to/destination/
 #### **总结**
 
 默认情况下，`rsync` 通过文件大小和修改时间戳来判断文件是否发生变化，这是一个快速且高效的方法。如果需要更精确的比较，可以使用 `-c` 选项进行基于校验和的比较，但这会增加同步的时间成本。
+
+## std::tm
+
+`std::tm` 是 C++ 标准库中用于表示时间和日期的结构体。它通常用于与时间相关的函数，例如格式化时间、解析时间字符串、计算时间差等。这个结构体包含了年、月、日、时、分、秒等时间信息。
+
+#### **`std::tm` 结构体的成员**
+
+`std::tm` 的定义通常如下：
+
+```cpp
+struct tm {
+    int tm_sec;   // 秒，范围为 [0, 60]，包括闰秒
+    int tm_min;   // 分，范围为 [0, 59]
+    int tm_hour;  // 小时，范围为 [0, 23]
+    int tm_mday;  // 一个月中的天数，范围为 [1, 31]
+    int tm_mon;   // 月，范围为 [0, 11]，0 表示一月
+    int tm_year;  // 年，从 1900 年起计算，比如 2024 年表示为 124
+    int tm_wday;  // 一周中的天数，范围为 [0, 6]，0 表示星期天
+    int tm_yday;  // 一年中的天数，范围为 [0, 365]
+    int tm_isdst; // 夏令时标志，正值表示夏令时，0 表示非夏令时，负值表示未知
+};
+```
+
+#### **使用 `std::tm` 的常见场景**
+
+1.  **获取当前时间并将其转换为 `std::tm`：**
+
+    ```cpp
+    #include <iostream>
+    #include <ctime>
+
+    int main() {
+        std::time_t t = std::time(nullptr);  // 获取当前时间
+        std::tm* now = std::localtime(&t);   // 将 time_t 转换为 tm 结构体
+
+        std::cout << "Year: " << (now->tm_year + 1900) << "\n";
+        std::cout << "Month: " << (now->tm_mon + 1) << "\n";
+        std::cout << "Day: " << now->tm_mday << "\n";
+        std::cout << "Time: " << now->tm_hour << ":" 
+                  << now->tm_min << ":" << now->tm_sec << "\n";
+
+        return 0;
+    }
+    ```
+
+    这个例子中，`std::localtime` 将当前时间转换为本地时间的 `std::tm` 结构体。
+2.  **将 `std::tm` 转换为字符串：**
+
+    ```cpp
+    #include <iostream>
+    #include <ctime>
+    #include <iomanip>
+
+    int main() {
+        std::time_t t = std::time(nullptr);
+        std::tm* now = std::localtime(&t);
+
+        // 格式化输出时间
+        std::cout << std::put_time(now, "%Y-%m-%d %H:%M:%S") << std::endl;
+
+        return 0;
+    }
+    ```
+
+    在这个例子中，`std::put_time` 用于将 `std::tm` 格式化为字符串，输出为 `"YYYY-MM-DD HH:MM:SS"` 格式。
+3.  **将字符串解析为 `std::tm`：**
+
+    ```cpp
+    #include <iostream>
+    #include <sstream>
+    #include <ctime>
+
+    int main() {
+        std::tm tm = {};
+        std::istringstream ss("2024-08-21 14:30:00");
+        ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+
+        if (ss.fail()) {
+            std::cerr << "Failed to parse time\n";
+        } else {
+            std::cout << "Year: " << (tm.tm_year + 1900) << "\n";
+            std::cout << "Month: " << (tm.tm_mon + 1) << "\n";
+            std::cout << "Day: " << tm.tm_mday << "\n";
+            std::cout << "Hour: " << tm.tm_hour << "\n";
+            std::cout << "Minute: " << tm.tm_min << "\n";
+            std::cout << "Second: " << tm.tm_sec << "\n";
+        }
+
+        return 0;
+    }
+    ```
+
+    在这个例子中，`std::get_time` 用于将字符串解析为 `std::tm` 结构体。
+
+#### **注意事项**
+
+* **`tm_year` 的基准年是 1900**，因此需要加上 1900 来获取实际的年份。
+* **`tm_mon` 的范围是 0 到 11**，0 表示一月，因此要显示实际的月份，需要加 1。
+
+#### **总结**
+
+`std::tm` 是 C++ 中表示时间的核心结构体，用于处理日期和时间相关的操作。通过结合标准库函数（如 `std::localtime`、`std::mktime`、`std::put_time`、`std::get_time`），你可以轻松地将 `std::tm` 与时间戳或字符串进行转换与操作。
+
+## HPI文档阅读
+
+* login是httpclient的方法。
+
+## API/SPI规范
+
+* 返回-4表示错误，0正常。ErrorId非零错误，零正常。
+
+## Debug
+
+纯虚函数仅声明不实现导致其它地方报连接错误
+
