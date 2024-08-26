@@ -344,5 +344,17 @@ struct tm {
 
 ## Debug
 
-纯虚函数仅声明不实现导致其它地方报连接错误
+纯虚函数仅声明不实现导致vtable报错。
+
+其它地方报连接错误是因为winapi没链接
+
+pip报错重新编译Python即可
+
+找不到beforetarget.sh清理项目重新生成即可
+
+segmentation fault是因为没有注册enum和if else的名称加载。
+
+CreateTradeApi是一个已声明未定义的工厂方法，需要在Api的cpp文件中定义它。
+
+
 
