@@ -102,7 +102,7 @@ order结束
 
 将nrqshared\_ptr的间接访问改为裸指针的间接访问，减少一层嵌套，结果如下：
 
-<figure><img src="../.gitbook/assets/image (1) (1) (1) (1).png" alt=""><figcaption><p>raw ptr</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1) (1) (1) (1).png" alt=""><figcaption><p>raw ptr</p></figcaption></figure>
 
 <figure><img src="../.gitbook/assets/image (3) (1) (1) (1).png" alt=""><figcaption><p>shared ptr</p></figcaption></figure>
 

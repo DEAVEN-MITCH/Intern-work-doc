@@ -729,9 +729,9 @@ print(result)  # 输出：5
 
 sqlite3缺少sqlite3\_trace\_v2的符号，
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
-
 <figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+
+<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 这是一个版本问题，我们的sqlite3似乎是0.8.6版本，而要求3.14版本以上。。
 

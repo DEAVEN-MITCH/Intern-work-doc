@@ -46,7 +46,11 @@ websocke和http都需要，因为功能不重叠。算法和普通交易接口�
 
 CMessageQueue需要用的时候再用，暂时不需要。
 
+暂时不考虑交易成功但查询更新时的延迟，先假定查询的account都是最新的。
 
+return -4和onRspxxx二选一。
+
+异步、同步？http部分全到spi中？
 
 ## gc-sections
 
@@ -503,4 +507,14 @@ HPI.so设置-Wl,--no-as-needed无效。
 
 加了http报错ReadError:\[Errno 104] Connection reset by peer，可能是协议不对。改为https后报错ConnectError:\[SSL:WRONG\_VERSION\_NUMBER] wrong version number。服务器开个域名白名单+http就可以了。
 
-返回的account对应InvestorId
+返回的account对应InvestorId，但似乎查询用的是account\_id
+
+<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+py::object的cast\<const char\*>会导致static assert 失败，应该是内存管理问题。cast为std::string就好。
+
+\[0]被识别为\[NULL]导致segfault,用py::int\_{0}替代，不报Segfault了。
+
+测试程序中可能出现还没有loginin初始化httpclient就调用reqaccount导致segfault,设置提前判断终止运行后避免。
+
+出现py::int转std::string失败

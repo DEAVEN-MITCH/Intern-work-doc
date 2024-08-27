@@ -121,7 +121,7 @@ Each group is associated with a required counter field of semantic data type Num
 
 The space reserved for all entries of a group is the product of the space reserved for each entry times the value of the associated NumInGroup counter. If the counter field is set to zero, then no entries are sent in the message, and no space is reserved for entries. The group dimensions including the zero-value counter is still transmitted, however.零元素组的组维度仍然会被传输，而条目不占空间。
 
-<figure><img src="../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 <figure><img src="../.gitbook/assets/image (2) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
@@ -147,7 +147,7 @@ A composite type often has its elements defined in-line within the XML element a
 
 An enumeration explicitly lists the valid values of a data domain. Any number of fields may share the same enumeration.
 
-<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
 
 To define a message type, add a element to the root element of the XML document, . The name and id attributes are required. The first is a display name for a message, while the latter is a unique numeric identifier, commonly called template ID.
 
