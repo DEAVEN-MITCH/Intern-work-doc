@@ -334,6 +334,133 @@ struct tm {
 
 `std::tm` 是 C++ 中表示时间的核心结构体，用于处理日期和时间相关的操作。通过结合标准库函数（如 `std::localtime`、`std::mktime`、`std::put_time`、`std::get_time`），你可以轻松地将 `std::tm` 与时间戳或字符串进行转换与操作。
 
+在 `/proc/[PID]/maps` 文件中的权限字段 `rwxp`，最后一个字符 `p` 表示的是内存区域的 **共享属性**。具体来说，它用于描述内存区域的 **私有性** 或 **共享性**。这个标志控制了该内存区域如何在不同进程之间共享。
+
+## `p`（Private） vs `s`（Shared）
+
+* **`p` (Private)**:
+  * 表示内存区域是私有的。当该内存区域被映射到进程的地址空间时，如果进程对该区域进行了写操作，操作系统会为该进程创建该内存区域的私有副本。这意味着修改不会影响其他进程对同一库的映射。
+  * **用途**: 私有映射通常用于堆栈、堆等进程特有的内存区域，或者动态库的私有数据区域。
+* **`s` (Shared)**:
+  * 表示内存区域是共享的。多个进程可以映射同一个内存区域，并且所有进程都可以看到该区域的相同内容。如果一个进程修改了共享内存区域的内容，所有其他映射到该区域的进程也会看到这些修改。
+  * **用途**: 共享映射常用于共享库的代码段和只读数据段，或者用于不同进程之间的共享内存区。
+
+#### 示例
+
+假设 `/proc/[PID]/maps` 文件中有如下内容：
+
+```
+7f3b5c000000-7f3b5c021000 r-xp 00000000 08:01 1234567 /usr/lib/libexample.so
+7f3b5c021000-7f3b5c022000 r--p 00021000 08:01 1234567 /usr/lib/libexample.so
+7f3b5c022000-7f3b5c023000 rw-p 00022000 08:01 1234567 /usr/lib/libexample.so
+```
+
+在这些行中：
+
+* **`r-xp`**:
+  * **`r`**: 可读
+  * **`x`**: 可执行
+  * **`p`**: 私有
+* **`r--p`**:
+  * **`r`**: 可读
+  * **`--`**: 不可写
+  * **`p`**: 私有
+* **`rw-p`**:
+  * **`r`**: 可读
+  * **`w`**: 可写
+  * **`p`**: 私有
+
+这里的 `p` 表示这些内存区域是私有的，因此每个进程对这些区域的写操作不会影响到其他进程。
+
+#### 总结
+
+权限字段的最后一个字符 `p` 指示内存区域是否是 **私有** 的，意味着该内存区域的内容在不同进程之间不会共享。`s` 则表示 **共享**，允许不同进程之间共享相同的内存内容。这个属性对于内存管理和进程间通信具有重要影响。
+
+## dlopen
+
+`dlopen` 是一个用于动态加载共享库（`.so` 文件）的函数，它允许程序在运行时加载和链接共享库。`dlopen` 函数属于 POSIX 标准的动态链接库接口，通常在 C/C++ 程序中使用。以下是 `dlopen` 函数的详细介绍及其各个参数的用途。
+
+#### 函数原型
+
+```c
+#include <dlfcn.h>
+
+void *dlopen(const char *filename, int flag);
+```
+
+#### 参数说明
+
+1. **`filename`**
+   * **类型**: `const char *`
+   * **用途**: 指定要加载的共享库的路径或名称。`filename` 可以是一个绝对路径、相对路径，或者仅是库的名称。
+   * **特殊情况**:
+     * 如果 `filename` 是 `NULL`，`dlopen` 将返回程序的主可执行文件的句柄。这通常用于在运行时获取应用程序自身的符号。
+     * 如果 `filename` 不包含斜杠（即纯库名称），`dlopen` 将在标准库路径中（如 `LD_LIBRARY_PATH`、`/lib`、`/usr/lib`）搜索该库。
+     * 如果指定路径不完整（如不包含文件扩展名），`dlopen` 可能会自动附加 `.so` 扩展名来寻找库。
+2. **`flag`**
+   * **类型**: `int`
+   * **用途**: 指定加载共享库时的行为选项。这是一个位掩码，可以由以下标志组合而成：
+     * **`RTLD_LAZY`**: 延迟解析符号。在库被加载时，仅解析所需的符号。其他符号直到它们被实际使用时才解析。如果符号无法解析，会导致程序崩溃。这是常用选项之一。
+     * **`RTLD_NOW`**: 立即解析所有符号。如果无法解析任何符号，`dlopen` 将返回 `NULL` 并设置错误状态。这种模式更为严格。
+     * **`RTLD_GLOBAL`**: 将该库的符号公开，使得后续加载的其他库可以访问这些符号。这对于多个库共享符号的场景很有用。
+     * **`RTLD_LOCAL`**: 默认选项，限制该库的符号仅在自身可见，其他库无法访问。这种方式更为安全。
+     * **`RTLD_NODELETE`**: （GNU 扩展）防止在 `dlclose` 调用时卸载该库。即使 `dlclose` 被调用，库也会保留在内存中，符号依然可用。
+     * **`RTLD_NOLOAD`**: （GNU 扩展）如果库已经加载，返回其句柄。如果库未加载，则返回 `NULL`。不加载新库。
+     * **`RTLD_DEEPBIND`**: （GNU 扩展）优先解析库内部定义的符号，而不是全局符号。这可以防止全局符号与库内的符号冲突。
+
+#### 返回值
+
+* **成功**: 返回一个指向共享库的句柄 (`void *`)。可以通过此句柄使用 `dlsym` 来获取库中的符号。
+* **失败**: 返回 `NULL`。可以使用 `dlerror` 函数获取详细的错误信息。
+
+#### 示例代码
+
+以下是一个使用 `dlopen` 动态加载库的示例代码：
+
+```c
+#include <stdio.h>
+#include <dlfcn.h>
+
+int main() {
+    // 加载共享库
+    void *handle = dlopen("libm.so.6", RTLD_LAZY);
+    if (!handle) {
+        fprintf(stderr, "%s\n", dlerror());
+        return 1;
+    }
+
+    // 清除错误
+    dlerror();
+
+    // 获取库中的符号
+    double (*cosine)(double) = (double (*)(double)) dlsym(handle, "cos");
+    const char *dlsym_error = dlerror();
+    if (dlsym_error) {
+        fprintf(stderr, "%s\n", dlsym_error);
+        dlclose(handle);
+        return 1;
+    }
+
+    // 使用符号
+    printf("%f\n", (*cosine)(2.0));
+
+    // 关闭共享库
+    dlclose(handle);
+
+    return 0;
+}
+```
+
+#### 常见用途
+
+* **插件系统**: `dlopen` 可用于加载插件，以扩展程序功能，而不需要在编译时链接所有可能的插件。
+* **延迟加载库**: 减少初始加载时间和内存占用，仅在实际需要时加载库。
+* **多版本库**: 根据需要在运行时选择特定版本的库加载。
+
+#### 总结
+
+`dlopen` 是一个强大的函数，可以在运行时动态加载和链接共享库。通过设置不同的标志，可以控制符号解析的时机、库的可见性以及符号冲突的处理方式。与 `dlsym` 和 `dlclose` 配合使用，可以在 C/C++ 程序中实现灵活的动态库管理。
+
 ## HPI文档阅读
 
 * login是httpclient的方法。
@@ -356,5 +483,24 @@ segmentation fault是因为没有注册enum和if else的名称加载。
 
 CreateTradeApi是一个已声明未定义的工厂方法，需要在Api的cpp文件中定义它。
 
+gil\_scoped\_acquire析构时释放锁，release析构时获取锁，因此作用域很重要。
 
+模块未找到发现是pip路径错误，修改后可在命令行python环境中import，却在Pybind中找不到。
 
+设置PYTHONPATH变量后不出现模块找不到错误，出现调用\_\_init\_\_的错误ImportError。
+
+<figure><img src="../.gitbook/assets/image (39).png" alt=""><figcaption></figcaption></figure>
+
+ldd -r后发现确实没有符号的定义
+
+HPI.so设置-Wl,--no-as-needed无效。
+
+已加载的libpython3.12的so可能因为**`RTLD_LOCAL的dlopen HPI.so`**而不可见。
+
+增加dlopen libpython.so，RTLD\_GLOGAL并-ldl后不再importError。
+
+没加https://或http协议报错
+
+加了http报错ReadError:\[Errno 104] Connection reset by peer，可能是协议不对。改为https后报错ConnectError:\[SSL:WRONG\_VERSION\_NUMBER] wrong version number。服务器开个域名白名单+http就可以了。
+
+返回的account对应InvestorId
