@@ -60,6 +60,12 @@ Max\_token因为是算法单不需要管
 
 用一个布尔值来使得回调前查完必要的信息，拖住回调。
 
+如何区分根据类型long,short?
+
+时间应该是返回的值还是本地时间的值？日期？
+
+qryposition ATO没有填InvestorId
+
 ## gc-sections
 
 `-Wl,-gc-sections` 是用于控制链接器行为的编译选项，常见于 GCC 和 Clang 编译器中。
@@ -528,3 +534,10 @@ py::object的cast\<const char\*>会导致static assert 失败，应该是内存�
 出现py::int转std::string失败，改为转py::str再转std::string
 
 limit=false(0)时确实一次返回所有
+
+构造WSClient对象时出现ValueError:signal only works in main thread of the main interpreter以及AttributeError: 'WSClient' object has no attribute '_sio_client'。由于在pythonCLI中正常初始化，怀疑是主线程问题。~~确实，在Interpreter被初始化的线程里用这个不报错~~。是在主线程的子线程中用不报错，主线程的子线程的子线程里用报错？？经测试，C++中init,httplogin,wsclient线程id各不相同，python线程号也各不相同，醉了。。
+
+updatetime为py::int类型(可能是大数字），得先转str再转string
+
+改用CMessage线程中初始化解释器并进行一切python操作，python线程和C++线程号都保持不变了。
+
