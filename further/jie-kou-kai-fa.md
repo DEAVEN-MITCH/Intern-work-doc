@@ -50,7 +50,15 @@ CMessageQueue需要用的时候再用，暂时不需要。
 
 return -4和onRspxxx二选一。
 
-异步、同步？http部分全到spi中？
+异步、同步？http部分全到spi中？异步通信。
+
+由于无法查询期初持仓，只能之后通过交易单反推。
+
+login初期就查好account\_id,初始化websocketclient
+
+Max\_token因为是算法单不需要管
+
+用一个布尔值来使得回调前查完必要的信息，拖住回调。
 
 ## gc-sections
 
@@ -517,4 +525,6 @@ py::object的cast\<const char\*>会导致static assert 失败，应该是内存�
 
 测试程序中可能出现还没有loginin初始化httpclient就调用reqaccount导致segfault,设置提前判断终止运行后避免。
 
-出现py::int转std::string失败
+出现py::int转std::string失败，改为转py::str再转std::string
+
+limit=false(0)时确实一次返回所有
