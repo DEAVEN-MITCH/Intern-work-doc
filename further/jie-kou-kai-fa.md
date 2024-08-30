@@ -60,11 +60,21 @@ Max\_token因为是算法单不需要管
 
 用一个布尔值来使得回调前查完必要的信息，拖住回调。
 
-如何区分根据类型long,short?
+如何区分根据类型long,short?不需要，先buy和sell
 
 时间应该是返回的值还是本地时间的值？日期？
 
-qryposition ATO没有填InvestorId
+qryposition ATO没有填InvestorId.
+
+localid传sumbitid，子单控制不了。查两种母单，再查子单
+
+组合开平标志简单和Direction一致。
+
+母单不需要limitPrice.母单应该用InstructionField，没有开平标志等等。。
+
+没有提供报单时间，可能要自己维护，记录第一次变成A的时间点。记录第一个last\_update\_time的时间点。
+
+Trade,InstructionInsert,Cancel,OnRtn,OnRtn。
 
 ## gc-sections
 
@@ -485,7 +495,12 @@ int main() {
 
 ## API/SPI规范
 
-* 返回-4表示错误，0正常。ErrorId非零错误，零正常。
+* 返回-4表示错误，0正常。ErrorId非零错误，零正常。&#x20;
+* OrderSysID由sysOrderId构建,将sysQuotedId转换成ins\_id,根据ins\_id转换为submit\_id,若有submitId则记录sysid到submitid的映射关系，否则用sysOrderId构建OrderRef。总体而言是通过instructionId获取Orderref(绑定sysid->submit\_id)。
+* sysorderid、instructionid均为对方提供
+* 母单用ParseIntructionField解析，所以母单不会出现在sysidtoorderref的表里。所以顺序无所谓。
+* 子单OrderRef在成功查到submitid后不需要手动填，AlgoSPid onRtnOrder会自动填。失败后填sysOrderId
+* 解析成功后都会调AlgoSpi的Onxxx，而这个AlogoSpi就是基类的m\_pAlgoSpi，且m\_pSpi也指向它，直接在找不到子类方法时调它就好。
 
 ## Debug
 
