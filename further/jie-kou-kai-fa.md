@@ -76,6 +76,10 @@ localid传sumbitid，子单控制不了。查两种母单，再查子单
 
 Trade,InstructionInsert,Cancel,OnRtn,OnRtn。
 
+先查母单再查Trade是为了绑定OrderRef，而正常再查Trade前就调用了查Order/初始化时……所以不用在每次查之前查母单
+
+create\_batch\_tasks与非batch性能没有区别，用create\_tasks。不需要future。T0和非T0，规范写完后用wiki。
+
 ## gc-sections
 
 `-Wl,-gc-sections` 是用于控制链接器行为的编译选项，常见于 GCC 和 Clang 编译器中。
