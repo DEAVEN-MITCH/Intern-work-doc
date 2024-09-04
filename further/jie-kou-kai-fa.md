@@ -80,6 +80,16 @@ Trade,InstructionInsert,Cancel,OnRtn,OnRtn。
 
 create\_batch\_tasks与非batch性能没有区别，用create\_tasks。不需要future。T0和非T0，规范写完后用wiki。
 
+limit\_price?remark?算法单报单错误处理？
+
+InstructionBindSubmitId,externalId?
+
+Cancel回调？不回调。
+
+RtnInstruction应该会在wbsocket中回调
+
+
+
 ## gc-sections
 
 `-Wl,-gc-sections` 是用于控制链接器行为的编译选项，常见于 GCC 和 Clang 编译器中。
@@ -560,3 +570,4 @@ updatetime为py::int类型(可能是大数字），得先转str再转string
 
 改用CMessage线程中初始化解释器并进行一切python操作，python线程和C++线程号都保持不变了。
 
+py::list作为成员变量会初始化，缺少解释器，segmentation fault。设为object，靠转型来操作。
