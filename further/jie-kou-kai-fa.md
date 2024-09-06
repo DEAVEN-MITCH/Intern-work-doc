@@ -88,7 +88,7 @@ Cancel回调？不回调。
 
 RtnInstruction应该会在wbsocket中回调
 
-
+记录submitid是否非TO,查询、报单、撤单成功返回时均需刷新。加不加锁看websocket的OrderRtn线程关系。先写websocket
 
 ## gc-sections
 
@@ -571,3 +571,17 @@ updatetime为py::int类型(可能是大数字），得先转str再转string
 改用CMessage线程中初始化解释器并进行一切python操作，python线程和C++线程号都保持不变了。
 
 py::list作为成员变量会初始化，缺少解释器，segmentation fault。设为object，靠转型来操作。
+
+ResponseError:-1001发现是因为limit\_upxxxdown参数没传
+
+ValueError:dictionary update sequence element #0xxx或str不能用str作索引是因为匿名py::dict对象在\_a=后自动转变为str，需要用.attr('xxx')=xxx来保留dict类型。
+
+security alogo not allow什么的是因为股票不可买，换个可买的就可以了
+
+std::f
+
+ConnectionError: One or more namespaces failed to connect似乎是因为使用了两次print?与pirntthreadId和print try to use的顺序无关,与print内容无关。与LOG无关。似乎仅仅是巧合。while循环一直尝试直到成功即可。
+
+
+
+蹊跷的错误无法捕获，仅仅打印信息后就接收不到回调了。券商问题，需要自己捕获。
