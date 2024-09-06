@@ -84,11 +84,27 @@ limit\_price?remark?算法单报单错误处理？
 
 InstructionBindSubmitId,externalId?
 
-Cancel回调？不回调。
+Cancel回调？不回调。撤单不回调。
 
 RtnInstruction应该会在wbsocket中回调
 
-记录submitid是否非TO,查询、报单、撤单成功返回时均需刷新。加不加锁看websocket的OrderRtn线程关系。先写websocket
+记录submitid是否非TO,查询、报单、撤单成功返回时均需刷新。加不加锁看websocket的OrderRtn线程关系。先写websocket。
+
+几十万次start不成功，什么错。
+
+查询母单返回值中没有之前给的extend\["submit\_id"]，持久化存储？
+
+sysid太长不能在LOG中打全。
+
+截断子单序号，检测websocket状态（断线重启）
+
+日志打印时机。
+
+大单测试。
+
+算法名输错，时间不正确，票不对，情况下的报错测试。
+
+不返回extend后用getSubmitId的方法获取submitId，发现若原来不存在，返回的就是乱码。
 
 ## gc-sections
 
@@ -578,10 +594,22 @@ ValueError:dictionary update sequence element #0xxx或str不能用str作索引�
 
 security alogo not allow什么的是因为股票不可买，换个可买的就可以了
 
-std::f
+std::function不能作为Python的回调函数，得用py::cpp\_function包装
 
 ConnectionError: One or more namespaces failed to connect似乎是因为使用了两次print?与pirntthreadId和print try to use的顺序无关,与print内容无关。与LOG无关。似乎仅仅是巧合。while循环一直尝试直到成功即可。
 
 
 
 蹊跷的错误无法捕获，仅仅打印信息后就接收不到回调了。券商问题，需要自己捕获。
+
+本以为文档是对的，结果T0的algo\_nameassert和文档不一样。
+
+t0下单返回的client\_task\_id居然是int.
+
+下单t0要么no avail vol要么not support t0，算了，测不了。
+
+有时候连续尝试start几十万次wsclient都不成功。
+
+不返回extend后用getSubmitId的方法获取submitId，发现若原来不存在，返回的就是乱码。
+
+不返回extend是因为不能用attr直接赋值dict,必须以入参方式，后面会被转成字符串，而extend为空返回的是空str没法转成
