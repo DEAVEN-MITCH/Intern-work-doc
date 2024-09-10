@@ -106,6 +106,8 @@ sysid太长不能在LOG中打全。
 
 不返回extend后用getSubmitId的方法获取submitId，发现若原来不存在，返回的就是乱码。
 
+读submit.csv前要先查母单，防止子单无法撤单，但这里查完不要回调。
+
 ## gc-sections
 
 `-Wl,-gc-sections` 是用于控制链接器行为的编译选项，常见于 GCC 和 Clang 编译器中。
@@ -608,8 +610,17 @@ t0下单返回的client\_task\_id居然是int.
 
 下单t0要么no avail vol要么not support t0，算了，测不了。
 
-有时候连续尝试start几十万次wsclient都不成功。
+有时候连续尝试start几十万次wsclient都不成功。是因为抛错，然后already connected。stop不奏效
 
 不返回extend后用getSubmitId的方法获取submitId，发现若原来不存在，返回的就是乱码。
 
 不返回extend是因为不能用attr直接赋值dict,必须以入参方式，后面会被转成字符串，而extend为空返回的是空str没法转成
+
+之前getExtend中出现的是str转dict的错误，后面就没错了？对方服务器返回值更新了？
+
+connect要耗时很久
+
+发现有的子单Ref出错，经排查母单的OnOrderRtn没有调用？经排查，缺少submitId的InstructionId的submitId与其它InstructionId冲突
+
+打印出ConnectionError却无法matchPyExc\_ConnectionError？是因为ConnectionError为socketio.exceptions类，并非原生PythonException。
+
