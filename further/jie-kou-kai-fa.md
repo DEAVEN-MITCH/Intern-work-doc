@@ -96,17 +96,23 @@ RtnInstruction应该会在wbsocket中回调
 
 sysid太长不能在LOG中打全。
 
-截断子单序号，检测websocket状态（断线重启）
+截断子单序号**，检测websocket状态（断线重启）**
 
-日志打印时机。
+**日志打印时机。**
 
 大单测试。
 
-算法名输错，时间不正确，票不对，情况下的报错测试。
+**算法名输错，时间不正确，票不对，情况下的报错测试。**
+
+时间不正确：warning，client\_task\_id=0，bind出错待修改。票不存在：error，错算法名：非“T0”均作为普通算法母单下单成功。
+
+**撤单测试**
 
 不返回extend后用getSubmitId的方法获取submitId，发现若原来不存在，返回的就是乱码。
 
 读submit.csv前要先查母单，防止子单无法撤单，但这里查完不要回调。
+
+由于使用回调函数才能发出wsclientinit信号，而初始化时不存在tasks和orders，从而不能初始化。因此需要account\_info辅助初始化。
 
 ## gc-sections
 
@@ -623,4 +629,16 @@ connect要耗时很久
 发现有的子单Ref出错，经排查母单的OnOrderRtn没有调用？经排查，缺少submitId的InstructionId的submitId与其它InstructionId冲突
 
 打印出ConnectionError却无法matchPyExc\_ConnectionError？是因为ConnectionError为socketio.exceptions类，并非原生PythonException。
+
+httpclientcanceltasks时一直等待，在python交互中测试没问题。尝试把撤单移到CMessageQueue中，就没问题了，可能是主线程问题导致的gil死锁？？
+
+单独撤单返回的datas是dict类型，与文档中list类型不符。
+
+交易时间外撤一个单报MSG服务端没有启动的错误，撤0个单返回的ret中没有datas这个键。
+
+在启动后增加撤单文件似乎就不出错。似乎是gil和某个自定义锁之间的死锁问题？？？从打印出的tasks数量推断，可能是wsclient的回调和立即读入submit.csv的cancel\_tasks之间存在竞争而后死锁。cancel一个或多个只要在wsclient初始化后立马调用读入就会死锁。（如此推断）
+
+Already connected后收不到回报，无解，直接terminate吧。
+
+将wsclientInit置为true放在回调之后，尝试阻止wsclient和cancel\_tasks之间的竞争，似乎成功
 
