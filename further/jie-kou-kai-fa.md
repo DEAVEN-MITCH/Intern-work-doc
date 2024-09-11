@@ -98,6 +98,8 @@ sysid太长不能在LOG中打全。
 
 截断子单序号**，检测websocket状态（断线重启）**
 
+皓兴更新了websocket，连接问题减少很多
+
 **日志打印时机。**
 
 大单测试。
@@ -113,6 +115,8 @@ sysid太长不能在LOG中打全。
 读submit.csv前要先查母单，防止子单无法撤单，但这里查完不要回调。
 
 由于使用回调函数才能发出wsclientinit信号，而初始化时不存在tasks和orders，从而不能初始化。因此需要account\_info辅助初始化。
+
+函数访问限制符，noexcept，const，
 
 ## gc-sections
 
@@ -636,9 +640,17 @@ httpclientcanceltasks时一直等待，在python交互中测试没问题。尝�
 
 交易时间外撤一个单报MSG服务端没有启动的错误，撤0个单返回的ret中没有datas这个键。
 
-在启动后增加撤单文件似乎就不出错。似乎是gil和某个自定义锁之间的死锁问题？？？从打印出的tasks数量推断，可能是wsclient的回调和立即读入submit.csv的cancel\_tasks之间存在竞争而后死锁。cancel一个或多个只要在wsclient初始化后立马调用读入就会死锁。（如此推断）
+在启动后增加撤单文件似乎就不出错。似乎是gil和某个自定义锁之间的死锁问题~~？？？从打印出的tasks数量推断，可能是wsclient的回调和立即读入submit.csv的cancel\_tasks之间存在竞争而后死锁。cancel一个或多个只要在wsclient初始化后立马调用读入就会死锁。（如此推断）~~应该是gil获取后在获取另一把mutex时进入pthread\_wait状态无法释放gil，而cancel\_tasks持有mutex却wait gil，导致死锁。现在修改代码保证获取mutex前先释放gil,（偏序）。由于被指控有难维护的风险性，改为先获取gil再获取mutex.
 
 Already connected后收不到回报，无解，直接terminate吧。
 
 将wsclientInit置为true放在回调之后，尝试阻止wsclient和cancel\_tasks之间的竞争，似乎成功
+
+datas\[0]出错是因为datas被auto推断为accessor，用0作索引被转成const char\*。datas置为list就可以，或者把0用py::int\_包装一下。
+
+fprintf没有输出是因为没有\n刷新缓冲区。
+
+set\_error\_handler可以有效捕获badnamespaceError，但捕获后是否能自动重启有待进一步验证。
+
+wsclient回调频率有待进一步验证，是否为间隔10s发三次后相同就不发了。
 
