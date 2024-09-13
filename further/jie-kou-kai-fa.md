@@ -116,7 +116,17 @@ sysid太长不能在LOG中打全。
 
 由于使用回调函数才能发出wsclientinit信号，而初始化时不存在tasks和orders，从而不能初始化。因此需要account\_info辅助初始化。
 
-函数访问限制符，noexcept，const，
+函数访问限制符，noexcept，const。都不重要，对就行。
+
+在没有下单的时候，似乎wsclient不回调account\_info，导致init信号无法发出？之后不知道谁下的单导致无法复现。
+
+acount\_info经咨询会一直发。
+
+Trade由于没有wsclient的回调，需要自行记录。TradeID需要截断，Trade的SysId也需要截断。
+
+由于自己维护带来不准确，而且Trade也不太重要，采用轮询。
+
+get\_history\_position这个函数还没实现。用初始化Trade和昨仓信息获得一个映射表。
 
 ## gc-sections
 
