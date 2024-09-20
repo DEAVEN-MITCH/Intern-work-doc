@@ -25,4 +25,5 @@
 * [SBE](further/page.md)
 * [cpp 中的Python 调用](further/cpp-zhong-de-python-diao-yong.md)
 * [VS](further/vs.md)
-* [接口开发](further/jie-kou-kai-fa.md)
+* [HPI接口开发](further/hpi-jie-kou-kai-fa.md)
+* [CATS接口开发](further/cats-jie-kou-kai-fa.md)
