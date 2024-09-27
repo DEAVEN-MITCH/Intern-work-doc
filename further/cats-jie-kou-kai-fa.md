@@ -12,3 +12,6 @@
 * Query有且仅有Position,account,fund，其它要么没有要么没用。得自己维护。
 * 算法参数没有文档
 * 订阅三个
+* Connect将API包更新并把demo下的xml复制到项目下后不报服务器IP、端口错误了，而是在连接中报Segmentation fault
+* 尝试排除std库版本问题，于是尝试编译运行Release版，但CreateTradeApi失败，Segmentation fault。重新编译AnyTradexxx项目后运行相同地方segmentation fault。demo也是
+* 加上推荐的libudev.so.1后仍然报错，经建议登录时传hdSerialNo免得自主查询
