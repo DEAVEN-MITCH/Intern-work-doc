@@ -14,4 +14,8 @@
 * 订阅三个
 * Connect将API包更新并把demo下的xml复制到项目下后不报服务器IP、端口错误了，而是在连接中报Segmentation fault
 * 尝试排除std库版本问题，于是尝试编译运行Release版，但CreateTradeApi失败，Segmentation fault。重新编译AnyTradexxx项目后运行相同地方segmentation fault。demo也是
-* 加上推荐的libudev.so.1后仍然报错，经建议登录时传hdSerialNo免得自主查询
+* 加上推荐的libudev.so.1后仍然报错，经建议登录时传hdSerialNo免得自主查询仍报错，得到最新so版本后成功。Login报禁止非API用户登录，联系对方开权限即可。
+* 开平标志不是简单对应买卖。。。。HPI有待更新。
+* 主线程pthread\_setname\_np后调试显示改名不成功。
+* CATS中cout不见了，经检查CATSInit后cout被重定向到./CONOUT$,而cin被重定向到某个socket?等问券商
+* position、fund查询有头文件，找不到文档。可以订阅，自己维护？

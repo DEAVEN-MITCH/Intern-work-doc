@@ -709,7 +709,7 @@ print(result)  # 输出：5
 
 ### 3.12.5
 
-<figure><img src="../.gitbook/assets/image (35).png" alt=""><figcaption><p>报错</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (86).png" alt=""><figcaption><p>报错</p></figcaption></figure>
 
 似乎只要加上PATH和PYTHONPATH的环境变量的修改再重新生成（先make clean)就可以成功生成so
 
@@ -725,25 +725,25 @@ print(result)  # 输出：5
 
 {% embed url="https://github.com/python/cpython/issues/94825" %}
 
-<figure><img src="../.gitbook/assets/image (36).png" alt=""><figcaption><p>缺少的模块</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (87).png" alt=""><figcaption><p>缺少的模块</p></figcaption></figure>
 
 sqlite3缺少sqlite3\_trace\_v2的符号，
 
-<figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../.gitbook/assets/image (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
 
 这是一个版本问题，我们的sqlite3似乎是0.8.6版本，而要求3.14版本以上。。
 
-<figure><img src="../.gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (6).png" alt=""><figcaption></figcaption></figure>
 
 
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
 
 ssl是路径问题，找不到OpenSSL目录，include文件夹也找不到。设置--with-openssl-rpath来指定动态链接的目录后问题照旧，
 
-<figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (7).png" alt=""><figcaption></figcaption></figure>
 
 改为Openssl源代码路径，发现版本有问题，小于1.1.1，/usr/local/openssl/include/openssl和/usr/include/openssl中的版本均为1.0.x。/usr/local/bin/openssl的版本为3.0.9，
 
@@ -777,5 +777,55 @@ sftp不上传软链接，上传软链接的链接目标。上传后仍能运行�
 
 由于编译机上的目录与部署机上不同，部署机可能需要设置LD\_LIBRARY\_PATH才能找到libsqlite3.so.0，也有可能因为已经设置了PYTHONHOME而不需要了？
 
+checking 找不到trace\_v2不重要，按上面设置找不到trace\_v2后面链接上就行。
 
+由于rpath对中间编译生成的so和构建的so都需要，中间编译生成的so需要借助rpath加载libsqlite3.so.0，而中间编译生成的so的目录在Python中间目录的结构中，无法借助.或./lib达成加载。由于构建得到的libpython.so需要移植，绝对目录不行。找到CodeSources中Modules和libsqlite.so.0的关系，rpath加个../..，尝试编译，不行，改为../../..，不行，都加上也不行。推测rpath是根据当前工作目录来寻找相对路径，与so路径无关，因此估测当前工作目录为Python3-12-5项目目录，则libsqlite3.so.0在..目录下，尝试libsqlite3.so.0
 
+由于rpath与当前路径相关，尝试用$ORIGIN来让rpath更可预期一些。
+
+NODIST选项传的rpath不会到最终的python产物中??似乎还是会传过去
+
+ssl找不到，很可能跟--with--openssl-rpath有关，因为sqlite3可以引入。
+
+<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+把--with--openssl-rpath设为no就可以import ssl了。不明所以，难以理解。
+
+将HPITrade.so的rpath改为lib优先，应该无用，因为最后加载看out的rpath。HPI中增加LD\_LIBRARY\_PATH。将out的RPATH中的错误版本ssl、crypto移除仍然无效。
+
+将ssl、crypto移到Interfaces下，正常运行。
+
+## 为什么LD\_LIBRARY\_PATH=../Python/lib xx.out 能正确找到libssl.so而在xx.out程序运行时setenv("LD\_LIBRARY\_PATH","../Python/lib",1)就找不到？
+
+这是因为 `LD_LIBRARY_PATH` 的作用机制在运行时和程序启动时有不同的行为。
+
+#### 背景：
+
+* **`LD_LIBRARY_PATH`** 是一个环境变量，用于指定在程序运行时查找共享库的路径。当你运行程序时，系统的动态链接器会根据这个变量的值来定位并加载所需的共享库（如 `libssl.so`）。
+* **`setenv("LD_LIBRARY_PATH", ...)`** 是在程序运行时设置环境变量的函数。
+
+#### 原因分析：
+
+当你在程序启动前设置 `LD_LIBRARY_PATH`（例如通过 `LD_LIBRARY_PATH=../Python/lib ./xx.out`），系统的动态链接器会在启动时使用这个环境变量来查找并加载共享库。
+
+然而，当你在程序运行过程中调用 `setenv("LD_LIBRARY_PATH", "../Python/lib", 1)` 来设置或修改 `LD_LIBRARY_PATH` 时，已经在启动时完成的动态链接加载不会重新执行。因此，即使你在程序运行时修改了 `LD_LIBRARY_PATH`，它也不会影响动态链接器的行为，无法加载新的共享库。
+
+#### 关键点：
+
+1. **动态链接器的行为**：
+   * 动态链接器（如 `ld.so` 或 `ld-linux.so`）在程序启动时会读取 `LD_LIBRARY_PATH` 并加载所需的共享库。
+   * 一旦程序启动并加载了所需的共享库，动态链接器不会再重新检查 `LD_LIBRARY_PATH` 的值，即使在运行时通过 `setenv` 修改了它。
+2. **`setenv` 的局限性**：
+   * `setenv("LD_LIBRARY_PATH", ...)` 修改环境变量是对当前进程的内存环境的修改，但这仅会影响后续通过 `exec()` 创建的新进程，而不会影响当前进程中已经进行的共享库加载。
+   * 由于共享库在程序启动时已经被加载，运行时再修改 `LD_LIBRARY_PATH` 无法重新加载或者找到新的共享库。
+
+#### 为什么 `LD_LIBRARY_PATH=../Python/lib ./xx.out` 能正常工作：
+
+在这种情况下，动态链接器会在程序启动时读取 `LD_LIBRARY_PATH` 的值，并根据指定的路径查找并加载所有需要的共享库（如 `libssl.so`）。一旦库加载成功，程序就能够正确运行。
+
+#### 总结：
+
+* **启动时设置 `LD_LIBRARY_PATH`**：在启动程序时通过环境变量设置（例如 `LD_LIBRARY_PATH=../Python/lib ./xx.out`），能够正确引导动态链接器加载共享库。
+* **运行时通过 `setenv` 修改 `LD_LIBRARY_PATH`**：无法影响已经启动的程序中的动态链接行为，动态链接器不会重新加载库，除非你通过 `exec()` 系列函数重新启动进程。
+
+如果你想在运行时加载共享库，可以使用 `dlopen` 来动态加载库，而不是依赖 `LD_LIBRARY_PATH`。

@@ -224,7 +224,7 @@ pybind11 对象的复制是C++层面的复制，得用GIL(PythonC对象的复制
 
 用debug模式构建，检测引用计数操作
 
-<figure><img src="../.gitbook/assets/image (38).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (89).png" alt=""><figcaption></figcaption></figure>
 
 
 
@@ -679,7 +679,7 @@ gil\_scoped\_acquire析构时释放锁，release析构时获取锁，因此作�
 
 设置PYTHONPATH变量后不出现模块找不到错误，出现调用\_\_init\_\_的错误ImportError。
 
-<figure><img src="../.gitbook/assets/image (39).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (90).png" alt=""><figcaption></figcaption></figure>
 
 ldd -r后发现确实没有符号的定义
 
@@ -695,7 +695,7 @@ HPI.so设置-Wl,--no-as-needed无效。
 
 返回的account对应InvestorId，但似乎查询用的是account\_id
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
 py::object的cast\<const char\*>会导致static assert 失败，应该是内存管理问题。cast为std::string就好。
 
@@ -768,4 +768,6 @@ fprintf没有输出是因为没有\n刷新缓冲区。
 set\_error\_handler可以有效捕获badnamespaceError，但捕获后是否能自动重启有待进一步验证。
 
 wsclient回调频率有待进一步验证，是否为间隔10s发三次后相同就不发了。
+
+ImportError找不到libssl.so.1.1。在set pythonpath后set ld\_library\_path，发现还是不行，而在运行程序前命令行ld\_library\_path就可以。经检查，readelf -d libpython.so后发现其中的rpath是绝对路径，改变Python编译中LDFLAGS中的-rpath为. &#x20;
 

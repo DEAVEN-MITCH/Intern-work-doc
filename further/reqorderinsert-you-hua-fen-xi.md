@@ -32,13 +32,13 @@ order1结束。
 
 即绝大部分为initUrlPath部分。这一部分分为3个部分，其中第三部分占比最大
 
-<figure><img src="../.gitbook/assets/image (4) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (24).png" alt=""><figcaption></figcaption></figure>
 
 initurlpath1是if\_else+字符串拼接，没有显著优化空间，initurlpath2是字符串拼接，没有显著优化空间。
 
 initulPath3再细分为4个部分，其中1、2没有触发，3占2.4μs,4占1.3μs
 
-<figure><img src="../.gitbook/assets/image (2) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (26).png" alt=""><figcaption></figcaption></figure>
 
 initUrlPath3\_3中self是if-else+字符串拼接调用了NormalizePriceString才造就的。
 
@@ -48,7 +48,7 @@ initUrlPath3\_4中有一个"&"的+=，改成push\_back('&'),结果始终在误�
 
 urlPathsize大概是150少一些
 
-<figure><img src="../.gitbook/assets/image (3) (1) (1) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (27).png" alt=""><figcaption></figcaption></figure>
 
 reserve 160后initurlPath提升了400多ns,总体没提升，可能是影响小于误差。reserve 512后提升了将近1微秒，总体也没提升，看Self only时间发现HMAC平均多了3微秒，应该是HMAC不稳定导致整体结果变差。
 
@@ -60,11 +60,11 @@ reserve 160后initurlPath提升了400多ns,总体没提升，可能是影响小�
 
 前：
 
-<figure><img src="../.gitbook/assets/image (14).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (65).png" alt=""><figcaption></figcaption></figure>
 
 后：
 
-<figure><img src="../.gitbook/assets/image (15).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (66).png" alt=""><figcaption></figcaption></figure>
 
 ***
 
@@ -72,15 +72,15 @@ reserve 160后initurlPath提升了400多ns,总体没提升，可能是影响小�
 
 尝试优化lock\_guard，单独测试性能结果。1e5lock快可能是L1缓存命中率高的原因。反正相差无几，lock、unlock仅几十ns，不是性能瓶颈，性能瓶颈应该是锁的竞争。
 
-<figure><img src="../.gitbook/assets/image (16).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (67).png" alt=""><figcaption></figcaption></figure>
 
 mutex方法非inline，经查询，inline优化仅几个ns，忽略不计。
 
-<figure><img src="../.gitbook/assets/image (17).png" alt=""><figcaption><p>Debug版防止编译器优化，进行测试</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (68).png" alt=""><figcaption><p>Debug版防止编译器优化，进行测试</p></figcaption></figure>
 
 addrequest方法中，前两个区域中位数只有100+ns，最后一个有近3微秒。
 
-<figure><img src="../.gitbook/assets/image (4) (1) (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (20).png" alt=""><figcaption></figcaption></figure>
 
 其中这个3微秒的区域也有多个函数调用，拆分开来看，一个1.4微秒的时间函数调用（boost库，觉得不能轻易优化），一个1微秒的其他（3\_2)。
 
@@ -102,9 +102,9 @@ order结束
 
 将nrqshared\_ptr的间接访问改为裸指针的间接访问，减少一层嵌套，结果如下：
 
-<figure><img src="../.gitbook/assets/image (1) (1) (1) (1) (1).png" alt=""><figcaption><p>raw ptr</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (21).png" alt=""><figcaption><p>raw ptr</p></figcaption></figure>
 
-<figure><img src="../.gitbook/assets/image (3) (1) (1) (1).png" alt=""><figcaption><p>shared ptr</p></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (23).png" alt=""><figcaption><p>shared ptr</p></figcaption></figure>
 
 有近一微秒的性能提升。
 
