@@ -27,4 +27,12 @@
 * position没有期初持仓，第一次订阅Trade的回调结束后计算出期初持仓，不需要控制订阅顺序，假定重启时单全撤了，第一次Position回调和Trade回调期间不会有变化。第一次回调Position和Trade时初始化期初持仓。第一次回调完成后startpolling
 * Algo实例的订阅，必须在初始化前完成submitId和instanceId的对应，然而如何确定每个InstanceId都与submitId绑定了呢？sleep(5s)
 * Order、AlgoExec、Trade需要依赖submitId和Instruction的绑定关系，若当前SysId找不到submitId,放到队列末尾等待处理。如果多次找不到再填000000
-*
+* AlgoInstance和AlgoExec都sleep5秒，Order、Trade回调同步。假定OrderTrade首次订阅不会重入。
+* 原始数据打LOG
+* 算法启动与实例数据返回都是以键值对的形式返回，不同算法接口有不同键值？得分情况适配。
+* targetQty和targetVol都赋值orderQty，side和tradeSide都赋值tradeside
+* 停止算法需要AlgoId和AlgoInstanceId
+* stopped 如果为A则变为C
+* 实例和执行信息都借助维护的信息进行回调。
+* Todo:trade、order、instance拿不到submitId进入队列。
+* tradeTime需要转换为xx:xx:xx格式，tradeDate转换为YYYYMMDD格式
