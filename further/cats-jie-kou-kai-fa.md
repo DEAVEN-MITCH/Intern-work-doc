@@ -6,10 +6,10 @@
 * VS以包括文件的最近公共根目录为传输主目录传输到远程项目目录，所以vcxproj应该放在公共根目录下以防目录结构传输中改变。
 * 由于CATSApi支持异步回调，直接同步调用各种己方接口回调即可。
 * CATS 的conf需要在./conf下，文件结构？lib64?
-* CATS 错误信息为中文，GB2312格式，需要vim -c "e ++enc=GB2312 xx"打开LOG或iconv -f gb2312 -t utf-8 xxx|vi 来读
+* CATS 错误信息为中文，GB2312格式，需要vim -c "e ++enc=GB2312 xx"打开LOG或iconv -f gb2312 -t utf-8 xxx|vi 来读。gbk也行
 * 连接服务器失败，请确认服务器ip及端口配置是否正确！尝试将行情端口设为示例中的11000失败，仍然该错误；尝试将行情地址、端口处理删除，失败报错hq服务器参数错误，将行情地址、端口用“”初始化，依然hq服务器参数错误。
 * Trade能订阅但无文档。Instruction能订阅但无submitId可以传。Order能订阅。三者均没有Query接口，需要自己维护。
-* Query有且仅有Position,account,fund，其它要么没有要么没用。得自己维护。
+* Query有且仅有Position,account,fund，其它要么没有要么没用。得自己维护。Position和fund将被废弃，subaccount没用
 * 算法参数没有文档
 * 订阅三个
 * Connect将API包更新并把demo下的xml复制到项目下后不报服务器IP、端口错误了，而是在连接中报Segmentation fault
@@ -32,7 +32,30 @@
 * 算法启动与实例数据返回都是以键值对的形式返回，不同算法接口有不同键值？得分情况适配。
 * targetQty和targetVol都赋值orderQty，side和tradeSide都赋值tradeside
 * 停止算法需要AlgoId和AlgoInstanceId
-* stopped 如果为A则变为C
+* stopped 如果为A则根据情况变为F或C。
 * 实例和执行信息都借助维护的信息进行回调。
-* Todo:trade、order、instance拿不到submitId进入队列。
-* tradeTime需要转换为xx:xx:xx格式，tradeDate转换为YYYYMMDD格式
+* Todo:trade、order、instanceExec拿不到submitId进入队列。
+* tradeTime需要转换为xx:xx:xx格式，tradeDate转换为YYYYMMDD格式。
+* 各种AlgoId的BeginTime格式不一样，需要写两个ifelse转换函数来转换。有些AlgoId需要beginDate和endDate，默认在AlgoParams里传，默认都是当天开始当天结束。
+
+## TODO
+
+1. 队列重试，有关Trade、Order、InstanceExec所依赖的信息得不到放到队列末尾等待之后处理，多次未成功放弃。
+2. 返回的Order、Trade的time格式处理，beginTime,endTime从输入到接口的双向转换
+3. 报单根据AlgoId传参数？撤单，撤全部，撤全部时需依赖维护可撤集合。
+4. 从已维护结构中查询。
+5. 原始数据、处理完数据的LOG内容
+6. Assetupdate的Subscribed变量命名？
+7. 测试不同算法的回调结果是否解析正确。
+8. 检验不传source\_id传submitId是否有效
+9. 检验期初持仓
+10. 检验回调是否重入
+11. 死锁排除，目前trade锁中初始化会获取position锁
+12. AlgoInstanceId单独形成超码？还是与AlgoId一起？
+13.
+
+    <figure><img src="../.gitbook/assets/image (91).png" alt=""><figcaption><p>AlgoInstanceId非常长，得截断</p></figcaption></figure>
+
+<figure><img src="../.gitbook/assets/image (92).png" alt=""><figcaption><p>最后两个@并不构成主键</p></figcaption></figure>
+
+14. 增量推送修改处理方法
