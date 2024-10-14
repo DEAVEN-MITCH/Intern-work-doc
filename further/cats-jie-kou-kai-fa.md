@@ -37,6 +37,11 @@
 * Todo:trade、order、instanceExec拿不到submitId进入队列。
 * tradeTime需要转换为xx:xx:xx格式，tradeDate转换为YYYYMMDD格式。
 * 各种AlgoId的BeginTime格式不一样，需要写两个ifelse转换函数来转换。有些AlgoId需要beginDate和endDate，默认在AlgoParams里传，默认都是当天开始当天结束。
+* 全0submitid并非当作非法的，但是正常用。
+* 增量空参数/已记录参数自己选择打LOG
+* AlgoInstanceId单独形成超码
+* 只支持单独下单，End不用填
+* 下单的effectTime会被转换为xx:xx:xx格式
 
 ## TODO
 
@@ -51,11 +56,11 @@
 9. 检验期初持仓
 10. 检验回调是否重入
 11. 死锁排除，目前trade锁中初始化会获取position锁
-12. AlgoInstanceId单独形成超码？还是与AlgoId一起？
-13.
+12.
 
     <figure><img src="../.gitbook/assets/image (91).png" alt=""><figcaption><p>AlgoInstanceId非常长，得截断</p></figcaption></figure>
 
 <figure><img src="../.gitbook/assets/image (92).png" alt=""><figcaption><p>最后两个@并不构成主键</p></figcaption></figure>
 
-14. 增量推送修改处理方法
+14. instuctionNo2AlgoId,防死锁情况出现
+15. 全零submitId仅在下单的算法单非submit.csv下单时赋值为00000
