@@ -42,25 +42,33 @@
 * AlgoInstanceId单独形成超码
 * 只支持单独下单，End不用填
 * 下单的effectTime会被转换为xx:xx:xx格式
+*
+
+    <figure><img src="../.gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+
+    貌似Trade是hhmmsssss，Order是hhmmss
+* 订阅接受不到全量Trade推送，notPubHist传false即可
+* enabledQty不是YdPosition。是因为测试环境T0……
+* 客户端HX\_SMARTVWAP传hh:mm:ss返回hhmmss，而API传hhmmss才能报单。
+* OrderRef可含下划线
 
 ## TODO
 
 1. 队列重试，有关Trade、Order、InstanceExec所依赖的信息得不到放到队列末尾等待之后处理，多次未成功放弃。
-2. 返回的Order、Trade的time格式处理，beginTime,endTime从输入到接口的双向转换
-3. 报单根据AlgoId传参数？撤单，撤全部，撤全部时需依赖维护可撤集合。
-4. 从已维护结构中查询。
-5. 原始数据、处理完数据的LOG内容
-6. Assetupdate的Subscribed变量命名？
-7. 测试不同算法的回调结果是否解析正确。
-8. 检验不传source\_id传submitId是否有效
-9. 检验期初持仓
-10. 检验回调是否重入
-11. 死锁排除，目前trade锁中初始化会获取position锁
-12.
+2. 原始数据、处理完数据的LOG内容
+3. Assetupdate的Subscribed变量命名？
+4. 测试不同算法的回调结果是否解析正确。
+5. 检验不传source\_id传submitId是否有效，有效
+6. 检验期初持仓
+7. 检验回调是否重入
+8. 死锁排除，目前trade锁中初始化会获取position锁
+9.
 
     <figure><img src="../.gitbook/assets/image (91).png" alt=""><figcaption><p>AlgoInstanceId非常长，得截断</p></figcaption></figure>
 
 <figure><img src="../.gitbook/assets/image (92).png" alt=""><figcaption><p>最后两个@并不构成主键</p></figcaption></figure>
 
-14. instuctionNo2AlgoId,防死锁情况出现
-15. 全零submitId仅在下单的算法单非submit.csv下单时赋值为00000
+14. 全零submitId仅在下单的算法单非submit.csv下单时赋值为00000
+15. 报单
+16. 同步
+17. 适配

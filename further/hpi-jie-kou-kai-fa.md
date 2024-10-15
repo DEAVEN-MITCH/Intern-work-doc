@@ -695,7 +695,7 @@ HPI.so设置-Wl,--no-as-needed无效。
 
 返回的account对应InvestorId，但似乎查询用的是account\_id
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2) (1).png" alt=""><figcaption></figcaption></figure>
 
 py::object的cast\<const char\*>会导致static assert 失败，应该是内存管理问题。cast为std::string就好。
 

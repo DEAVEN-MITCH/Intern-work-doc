@@ -787,13 +787,15 @@ NODIST选项传的rpath不会到最终的python产物中??似乎还是会传过�
 
 ssl找不到，很可能跟--with--openssl-rpath有关，因为sqlite3可以引入。
 
-<figure><img src="../.gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
 把--with--openssl-rpath设为no就可以import ssl了。不明所以，难以理解。
 
 将HPITrade.so的rpath改为lib优先，应该无用，因为最后加载看out的rpath。HPI中增加LD\_LIBRARY\_PATH。将out的RPATH中的错误版本ssl、crypto移除仍然无效。
 
 将ssl、crypto移到Interfaces下，正常运行。
+
+缺libffi.so无法编译\_ctypes，。。。
 
 ## 为什么LD\_LIBRARY\_PATH=../Python/lib xx.out 能正确找到libssl.so而在xx.out程序运行时setenv("LD\_LIBRARY\_PATH","../Python/lib",1)就找不到？
 
